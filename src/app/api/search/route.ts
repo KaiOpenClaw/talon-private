@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { search } from '@/lib/lancedb'
+
+const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:5050'
+const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
+
+// Use gateway's memory search instead of local LanceDB
+// This works on Vercel since it's just an API call
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,49 +15,61 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 })
     }
     
-    const results = await search(query, {
-      scope,
-      scopeId,
-      limit,
-      minScore,
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (GATEWAY_TOKEN) headers['Authorization'] = `Bearer ${GATEWAY_TOKEN}`
+    
+    // Call gateway memory search
+    const res = await fetch(`${GATEWAY_URL}/api/memory/search`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        query,
+        maxResults: limit,
+        minScore,
+        scope: scopeId || scope,
+      }),
     })
     
+    if (!res.ok) {
+      // Return empty results instead of error for graceful degradation
+      return NextResponse.json({ 
+        results: [],
+        query,
+        message: 'Gateway memory search unavailable',
+      })
+    }
+    
+    const data = await res.json()
     return NextResponse.json({
+      results: data.results || [],
       query,
-      results,
-      count: results.length,
     })
   } catch (error) {
     console.error('Search error:', error)
     return NextResponse.json({ 
-      error: (error as Error).message 
-    }, { status: 500 })
+      results: [],
+      error: 'Search failed',
+    })
   }
 }
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const query = searchParams.get('q')
-  const scope = searchParams.get('scope') as 'global' | 'project' | 'workspace' | 'cross' | 'all' | undefined
-  const scopeId = searchParams.get('scopeId') || undefined
-  const limit = parseInt(searchParams.get('limit') || '10')
+  const query = searchParams.get('query') || searchParams.get('q')
   
   if (!query) {
-    return NextResponse.json({ error: 'Query (q) is required' }, { status: 400 })
+    return NextResponse.json({ error: 'Query parameter required' }, { status: 400 })
   }
   
-  try {
-    const results = await search(query, { scope, scopeId, limit })
-    
-    return NextResponse.json({
+  // Reuse POST logic
+  const fakeRequest = {
+    json: async () => ({
       query,
-      results,
-      count: results.length,
-    })
-  } catch (error) {
-    console.error('Search error:', error)
-    return NextResponse.json({ 
-      error: (error as Error).message 
-    }, { status: 500 })
-  }
+      limit: parseInt(searchParams.get('limit') || '10'),
+      scope: searchParams.get('scope'),
+      scopeId: searchParams.get('scopeId'),
+    }),
+  } as NextRequest
+  
+  return POST(fakeRequest)
 }
