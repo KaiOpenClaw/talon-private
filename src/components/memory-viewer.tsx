@@ -153,7 +153,15 @@ export default function MemoryViewer({ agentId, onClose }: MemoryViewerProps) {
           )}
           
           {error ? (
-            <div className="p-4 text-red-400 text-sm">{error}</div>
+            <div className="p-4">
+              <div className="text-amber-400 text-sm mb-2">⚠️ {error}</div>
+              <button 
+                onClick={() => { setError(null); setLoading(true); }}
+                className="text-xs text-terminal-400 hover:underline"
+              >
+                Retry
+              </button>
+            </div>
           ) : (
             files.map((file) => (
               <button

@@ -44,16 +44,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'chat' | 'agents' | 'sessions'>('chat')
 
-  // Load data
+  // Load data once on mount
   useEffect(() => {
+    let mounted = true
+    
     async function load() {
-      setLoading(true)
       try {
         const [agentsRes, sessionsRes, blockersRes] = await Promise.all([
           fetch('/api/agents'),
           fetch('/api/sessions/list?activeMinutes=120&limit=20'),
           fetch('/api/blockers'),
         ])
+        
+        if (!mounted) return
         
         const agentsData = await agentsRes.json()
         const sessionsData = await sessionsRes.json()
@@ -64,21 +67,21 @@ export default function Dashboard() {
         setSessions(sessionsData.sessions || [])
         setBlockers(blockersData.blockers || [])
         
-        // Auto-select first agent
+        // Auto-select first agent if none selected
         if (agentsList.length > 0 && !selectedAgent) {
           setSelectedAgent(agentsList[0])
         }
       } catch (e) {
         console.error('Failed to load:', e)
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
     
     load()
-    const interval = setInterval(load, 30000) // Refresh every 30s
-    return () => clearInterval(interval)
-  }, [])
+    
+    return () => { mounted = false }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeSessionCount = sessions.filter(s => s.kind === 'main' || s.kind === 'channel').length
 
