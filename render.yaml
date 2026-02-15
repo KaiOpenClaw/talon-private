@@ -1,0 +1,23 @@
+# Render Blueprint - Talon (OpenClaw UI)
+# Deploy: render.com/new → select this repo
+
+services:
+  - type: web
+    name: talon
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GATEWAY_URL
+        sync: false  # Set manually in Render dashboard
+      - key: GATEWAY_TOKEN
+        sync: false  # Set manually in Render dashboard
+      - key: AGENTS_DIR
+        value: /opt/render/project/src/agents  # Optional, for local agent files
+      - key: PORT
+        value: 4000
