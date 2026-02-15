@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:5050'
+const GATEWAY_URL = process.env.GATEWAY_URL || 'https://srv1325349.tail657eaf.ts.net:5050'
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
-
-// On Vercel, we fetch agents from the gateway instead of filesystem
-// Locally with AGENTS_DIR set, we could still use filesystem
 
 interface AgentInfo {
   id: string
@@ -12,7 +9,7 @@ interface AgentInfo {
   description: string
   status: 'online' | 'busy' | 'offline'
   avatar: string
-  workdir: string
+  workdir?: string
   memorySize?: string
   lastActivity?: string
 }
@@ -32,62 +29,68 @@ const DEFAULT_AVATARS: Record<string, string> = {
 
 export async function GET() {
   try {
-    // Try to get agents list from gateway
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (GATEWAY_TOKEN) headers['Authorization'] = `Bearer ${GATEWAY_TOKEN}`
-    
-    const res = await fetch(`${GATEWAY_URL}/api/agents`, {
-      headers,
+    // Fetch sessions from gateway to infer active agents
+    const response = await fetch(`${GATEWAY_URL}/api/sessions`, {
+      headers: {
+        'Authorization': `Bearer ${GATEWAY_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
       cache: 'no-store',
     })
-    
-    if (res.ok) {
-      const data = await res.json()
-      // Map gateway response to our format
-      const agents: AgentInfo[] = (data.agents || []).map((agent: any) => ({
-        id: agent.id || agent.agentId,
-        name: agent.name || agent.id,
-        description: agent.description || `${agent.id} agent`,
-        status: 'offline',
-        avatar: DEFAULT_AVATARS[agent.id] || DEFAULT_AVATARS.default,
-        workdir: agent.workspace || agent.workdir || '',
-        memorySize: undefined,
-        lastActivity: undefined,
-      }))
-      
-      return NextResponse.json({ agents })
+
+    if (!response.ok) {
+      // Return known agents as fallback
+      const fallbackAgents: AgentInfo[] = [
+        { id: 'duplex', name: 'Duplex', description: 'Real-time voice AI platform', status: 'offline', avatar: '🎙️' },
+        { id: 'kai', name: 'Kai', description: 'OpenClaw assistant', status: 'offline', avatar: '🦞' },
+        { id: 'personal', name: 'Personal', description: 'Personal assistant', status: 'offline', avatar: '🤖' },
+      ]
+      return NextResponse.json({ agents: fallbackAgents })
     }
+
+    const data = await response.json()
+    const sessions = data.sessions || []
+
+    // Extract unique agents from sessions
+    const agentMap = new Map<string, AgentInfo>()
     
-    // Fallback: try sessions endpoint to infer active agents
-    const sessionsRes = await fetch(`${GATEWAY_URL}/api/sessions?activeMinutes=60`, {
-      headers,
-      cache: 'no-store',
-    })
-    
-    if (sessionsRes.ok) {
-      const sessionsData = await sessionsRes.json()
-      const agentIds = new Set<string>()
-      
-      for (const session of sessionsData.sessions || []) {
-        if (session.agentId) agentIds.add(session.agentId)
+    for (const session of sessions) {
+      const agentId = session.agent || session.agentId || 'unknown'
+      if (!agentMap.has(agentId)) {
+        agentMap.set(agentId, {
+          id: agentId,
+          name: agentId.charAt(0).toUpperCase() + agentId.slice(1),
+          description: `${agentId} agent`,
+          status: session.status === 'active' ? 'online' : 'offline',
+          avatar: DEFAULT_AVATARS[agentId] || DEFAULT_AVATARS.default,
+          lastActivity: session.lastActivity,
+        })
       }
-      
-      const agents: AgentInfo[] = Array.from(agentIds).map(id => ({
-        id,
-        name: id.charAt(0).toUpperCase() + id.slice(1),
-        description: `${id} agent`,
-        status: 'online',
-        avatar: DEFAULT_AVATARS[id] || DEFAULT_AVATARS.default,
-        workdir: '',
-      }))
-      
-      return NextResponse.json({ agents })
     }
-    
-    // No agents found
-    return NextResponse.json({ agents: [] })
+
+    // Add known agents if not already present
+    const knownAgents = ['duplex', 'kai', 'personal', 'adminops']
+    for (const id of knownAgents) {
+      if (!agentMap.has(id)) {
+        agentMap.set(id, {
+          id,
+          name: id.charAt(0).toUpperCase() + id.slice(1),
+          description: `${id} agent`,
+          status: 'offline',
+          avatar: DEFAULT_AVATARS[id] || DEFAULT_AVATARS.default,
+        })
+      }
+    }
+
+    const agents = Array.from(agentMap.values())
+    return NextResponse.json({ agents })
   } catch (error) {
     console.error('Error fetching agents:', error)
-    return NextResponse.json({ agents: [], error: 'Failed to fetch agents' })
+    // Return fallback on error
+    const fallbackAgents: AgentInfo[] = [
+      { id: 'duplex', name: 'Duplex', description: 'Real-time voice AI platform', status: 'offline', avatar: '🎙️' },
+      { id: 'kai', name: 'Kai', description: 'OpenClaw assistant', status: 'offline', avatar: '🦞' },
+    ]
+    return NextResponse.json({ agents: fallbackAgents })
   }
 }
