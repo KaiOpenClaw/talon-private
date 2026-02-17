@@ -31,6 +31,9 @@ services:
       # OpenAI (for embeddings)
       - key: OPENAI_API_KEY
         sync: false
+      # Authentication
+      - key: TALON_AUTH_TOKEN
+        sync: false
       # LanceDB storage
       - key: LANCEDB_PATH
         value: /opt/render/project/.lancedb
