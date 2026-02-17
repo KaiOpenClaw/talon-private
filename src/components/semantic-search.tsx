@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Search, Loader2, FileText, FolderOpen, 
-  Globe, Users, Zap, ChevronDown, X,
-  Database, RefreshCw
+  Brain, Users, ChevronRight, X,
+  Database, RefreshCw, AlertCircle
 } from 'lucide-react'
 
 interface SearchResult {
   document: {
     id: string
     content: string
-    scope: string
-    scopeId?: string
-    sourcePath: string
-    sourceType: string
+    agentId: string
+    filePath: string
+    fileType: string
+    chunk: number
     timestamp: string
   }
   score: number
@@ -22,44 +22,51 @@ interface SearchResult {
 }
 
 interface IndexStats {
+  status: string
   totalDocuments: number
-  byScope: Record<string, number>
+  byAgent: Record<string, number>
   lastIndexed?: string
 }
 
 interface SemanticSearchProps {
-  defaultScope?: 'all' | 'global' | 'workspace' | 'project' | 'cross'
-  scopeId?: string
+  defaultAgentId?: string
   onResultClick?: (result: SearchResult) => void
 }
 
-const SCOPE_ICONS: Record<string, typeof Globe> = {
-  global: Globe,
-  workspace: FolderOpen,
-  project: Users,
-  cross: Zap,
-}
-
-const SCOPE_COLORS: Record<string, string> = {
-  global: 'text-blue-400',
-  workspace: 'text-purple-400',
-  project: 'text-orange-400',
-  cross: 'text-green-400',
+const FILE_TYPE_ICONS: Record<string, { icon: typeof FileText; color: string }> = {
+  memory: { icon: Brain, color: 'text-purple-400' },
+  soul: { icon: Users, color: 'text-blue-400' },
+  tools: { icon: FileText, color: 'text-green-400' },
+  agents: { icon: FolderOpen, color: 'text-orange-400' },
+  docs: { icon: FileText, color: 'text-cyan-400' },
+  other: { icon: FileText, color: 'text-ink-muted' },
 }
 
 export default function SemanticSearch({ 
-  defaultScope = 'all', 
-  scopeId,
+  defaultAgentId,
   onResultClick 
 }: SemanticSearchProps) {
   const [query, setQuery] = useState('')
-  const [scope, setScope] = useState(defaultScope)
+  const [agentFilter, setAgentFilter] = useState(defaultAgentId || '')
   const [results, setResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showIndexPanel, setShowIndexPanel] = useState(false)
   const [stats, setStats] = useState<IndexStats | null>(null)
   const [indexing, setIndexing] = useState(false)
+  const [agents, setAgents] = useState<string[]>([])
+
+  // Fetch agent list on mount
+  useEffect(() => {
+    fetch('/api/agents')
+      .then(res => res.json())
+      .then(data => {
+        if (data.agents) {
+          setAgents(data.agents.map((a: { id: string }) => a.id))
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   async function handleSearch() {
     if (!query.trim()) return
@@ -68,22 +75,17 @@ export default function SemanticSearch({
     setError(null)
     
     try {
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: query.trim(),
-          scope: scope === 'all' ? undefined : scope,
-          scopeId,
-          limit: 20,
-          minScore: 0.4,
-        }),
+      const params = new URLSearchParams({
+        q: query.trim(),
+        limit: '20',
       })
+      if (agentFilter) params.set('agent', agentFilter)
       
+      const res = await fetch(`/api/search?${params}`)
       const data = await res.json()
       
       if (!res.ok) {
-        setError(data.error || 'Search failed')
+        setError(data.error || data.message || 'Search failed')
         return
       }
       
@@ -105,22 +107,33 @@ export default function SemanticSearch({
     }
   }
 
-  async function triggerIndex(action: string) {
+  async function triggerIndex(agentId?: string) {
     setIndexing(true)
+    setError(null)
     try {
       const res = await fetch('/api/index', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ agentId }),
       })
+      
+      const data = await res.json()
       
       if (res.ok) {
         await fetchStats()
+      } else {
+        setError(data.error || 'Indexing failed')
       }
     } catch (e) {
-      console.error('Index failed:', e)
+      setError((e as Error).message)
     } finally {
       setIndexing(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch()
     }
   }
 
@@ -134,23 +147,23 @@ export default function SemanticSearch({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Search across memory, projects, workspaces..."
+            onKeyDown={handleKeyDown}
+            placeholder="Search across agent workspaces..."
             className="w-full pl-10 pr-4 py-3 bg-surface-2 border border-border-default rounded-lg text-sm focus:outline-none focus:border-terminal-500/50"
+            autoFocus
           />
         </div>
         
-        {/* Scope selector */}
+        {/* Agent filter */}
         <select
-          value={scope}
-          onChange={(e) => setScope(e.target.value as typeof scope)}
-          className="px-4 py-3 bg-surface-2 border border-border-default rounded-lg text-sm focus:outline-none focus:border-terminal-500/50"
+          value={agentFilter}
+          onChange={(e) => setAgentFilter(e.target.value)}
+          className="px-4 py-3 bg-surface-2 border border-border-default rounded-lg text-sm focus:outline-none focus:border-terminal-500/50 min-w-[140px]"
         >
-          <option value="all">All Scopes</option>
-          <option value="global">Global</option>
-          <option value="workspace">Workspaces</option>
-          <option value="project">Projects</option>
-          <option value="cross">Cross-Workspace</option>
+          <option value="">All Agents</option>
+          {agents.map(agent => (
+            <option key={agent} value={agent}>{agent}</option>
+          ))}
         </select>
         
         <button
@@ -193,45 +206,57 @@ export default function SemanticSearch({
           
           {stats ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-4 gap-3">
-                <div className="bg-surface-2 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold">{stats.totalDocuments}</div>
-                  <div className="text-xs text-ink-muted">Total Docs</div>
+              {stats.status === 'unavailable' ? (
+                <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  LanceDB not available (running on Vercel?)
                 </div>
-                {Object.entries(stats.byScope).map(([scope, count]) => {
-                  const Icon = SCOPE_ICONS[scope] || FileText
-                  return (
-                    <div key={scope} className="bg-surface-2 rounded-lg p-3 text-center">
-                      <Icon className={`w-4 h-4 mx-auto mb-1 ${SCOPE_COLORS[scope] || 'text-ink-muted'}`} />
-                      <div className="text-lg font-bold">{count}</div>
-                      <div className="text-xs text-ink-muted capitalize">{scope}</div>
+              ) : (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="bg-surface-2 rounded-lg px-4 py-2 text-center">
+                      <div className="text-xl font-bold text-terminal-400">{stats.totalDocuments}</div>
+                      <div className="text-xs text-ink-muted">Total Chunks</div>
                     </div>
-                  )
-                })}
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={() => triggerIndex('all')}
-                  disabled={indexing}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 rounded-lg text-sm font-medium"
-                >
-                  {indexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  Reindex All
-                </button>
-                <button
-                  onClick={() => triggerIndex('global')}
-                  disabled={indexing}
-                  className="px-4 py-2 bg-surface-3 hover:bg-surface-4 rounded-lg text-sm"
-                >
-                  Index Global
-                </button>
-              </div>
-              
-              {stats.lastIndexed && (
-                <p className="text-xs text-ink-muted text-center">
-                  Last indexed: {new Date(stats.lastIndexed).toLocaleString()}
-                </p>
+                    <div className="bg-surface-2 rounded-lg px-4 py-2 text-center">
+                      <div className="text-xl font-bold text-blue-400">{Object.keys(stats.byAgent || {}).length}</div>
+                      <div className="text-xs text-ink-muted">Agents Indexed</div>
+                    </div>
+                  </div>
+                  
+                  {stats.byAgent && Object.keys(stats.byAgent).length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {Object.entries(stats.byAgent).map(([agent, count]) => (
+                        <span 
+                          key={agent} 
+                          className="px-2 py-1 bg-surface-2 rounded text-xs text-ink-secondary"
+                        >
+                          {agent}: {count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => triggerIndex()}
+                      disabled={indexing}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 rounded-lg text-sm font-medium"
+                    >
+                      {indexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                      Reindex All
+                    </button>
+                    {agentFilter && (
+                      <button
+                        onClick={() => triggerIndex(agentFilter)}
+                        disabled={indexing}
+                        className="px-4 py-2 bg-surface-3 hover:bg-surface-4 rounded-lg text-sm"
+                      >
+                        Index {agentFilter}
+                      </button>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           ) : (
@@ -244,7 +269,8 @@ export default function SemanticSearch({
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>
       )}
@@ -253,39 +279,44 @@ export default function SemanticSearch({
       {results.length > 0 && (
         <div className="space-y-2">
           <div className="text-sm text-ink-muted">
-            {results.length} result{results.length !== 1 ? 's' : ''}
+            {results.length} result{results.length !== 1 ? 's' : ''} for &quot;{query}&quot;
           </div>
           
           {results.map((result, i) => {
-            const Icon = SCOPE_ICONS[result.document.scope] || FileText
-            const color = SCOPE_COLORS[result.document.scope] || 'text-ink-muted'
+            const typeConfig = FILE_TYPE_ICONS[result.document.fileType] || FILE_TYPE_ICONS.other
+            const Icon = typeConfig.icon
             
             return (
               <div
                 key={i}
                 onClick={() => onResultClick?.(result)}
-                className="bg-surface-1 rounded-xl border border-border-subtle p-4 hover:border-terminal-500/30 transition-colors cursor-pointer"
+                className="group bg-surface-1 rounded-xl border border-border-subtle p-4 hover:border-terminal-500/30 transition-colors cursor-pointer"
               >
                 <div className="flex items-start gap-3">
-                  <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${color}`} />
+                  <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${typeConfig.color}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono text-sm text-terminal-400">
-                        {result.document.sourcePath}
+                      <span className="font-medium text-terminal-400">
+                        {result.document.agentId}
                       </span>
-                      <span className="text-xs text-ink-muted">•</span>
-                      <span className={`text-xs capitalize ${color}`}>
-                        {result.document.scope}
-                        {result.document.scopeId && `:${result.document.scopeId}`}
+                      <ChevronRight className="w-3 h-3 text-ink-muted" />
+                      <span className="font-mono text-sm text-ink-secondary truncate">
+                        {result.document.filePath}
                       </span>
-                      <span className="text-xs text-ink-muted ml-auto">
-                        {Math.round(result.score * 100)}% match
+                      {result.document.chunk > 0 && (
+                        <span className="text-xs text-ink-muted">
+                          (chunk {result.document.chunk + 1})
+                        </span>
+                      )}
+                      <span className="text-xs text-ink-muted ml-auto flex-shrink-0">
+                        {Math.round(result.score * 100)}%
                       </span>
                     </div>
-                    <p className="text-sm text-ink-secondary line-clamp-3">
+                    <p className="text-sm text-ink-secondary line-clamp-3 whitespace-pre-wrap">
                       {result.snippet}
                     </p>
                   </div>
+                  <ChevronRight className="w-4 h-4 text-ink-muted opacity-0 group-hover:opacity-100 flex-shrink-0" />
                 </div>
               </div>
             )
@@ -294,10 +325,20 @@ export default function SemanticSearch({
       )}
 
       {/* Empty state */}
-      {!searching && results.length === 0 && query && (
+      {!searching && results.length === 0 && query && !error && (
         <div className="text-center py-8 text-ink-muted">
           <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p>No results found for &quot;{query}&quot;</p>
+          <p className="text-xs mt-1">Try different keywords or index more workspaces</p>
+        </div>
+      )}
+
+      {/* Initial state */}
+      {!searching && results.length === 0 && !query && !error && (
+        <div className="text-center py-8 text-ink-muted">
+          <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p>Search across agent memories, souls, and tools</p>
+          <p className="text-xs mt-1">Uses semantic embeddings for intelligent matching</p>
         </div>
       )}
     </div>
