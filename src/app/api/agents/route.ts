@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 // Talon API server (exposes agent workspaces)
 const TALON_API_URL = process.env.TALON_API_URL || 'https://srv1325349.tail657eaf.ts.net:4101'
 const TALON_API_TOKEN = process.env.TALON_API_TOKEN || ''

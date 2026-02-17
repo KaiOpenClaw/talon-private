@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 const GATEWAY_URL = process.env.GATEWAY_URL;
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN;
 

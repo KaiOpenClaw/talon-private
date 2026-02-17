@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { broadcastSessionUpdate } from '@/lib/websocket-broadcast'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic'
+
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 
 export async function GET(request: NextRequest) {
