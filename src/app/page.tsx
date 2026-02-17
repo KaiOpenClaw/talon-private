@@ -6,9 +6,10 @@ import {
   Terminal, MessageSquare, Zap, Settings, FileText, 
   Activity, Clock, AlertTriangle, ChevronRight, 
   Loader2, RefreshCw, Users, Calendar, Search,
-  FolderOpen, Plus
+  FolderOpen, Plus, LogOut
 } from 'lucide-react'
 import ChatPanel from '@/components/chat-panel'
+import { LogoutButton } from '@/components/auth-status'
 
 interface Agent {
   id: string
@@ -226,6 +227,9 @@ export default function Dashboard() {
             <Settings className="w-4 h-4" />
             <span className="text-sm">Settings</span>
           </Link>
+          <div className="pt-2 mt-2 border-t border-border-subtle">
+            <LogoutButton className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 text-sm" />
+          </div>
         </div>
       </aside>
 
