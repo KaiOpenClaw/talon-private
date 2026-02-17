@@ -1,7 +1,10 @@
 /**
  * OpenClaw Gateway Client
  * Connects Talon to the real OpenClaw gateway API
+ * Includes caching for improved performance
  */
+
+import { cache, CACHE_TTL, withCache, withSWR } from './cache'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
@@ -85,6 +88,7 @@ export interface CronJob {
 
 /**
  * List all sessions with optional filters
+ * Uses short TTL cache since sessions change frequently
  */
 export async function listSessions(params?: {
   kinds?: string[]
@@ -98,12 +102,16 @@ export async function listSessions(params?: {
   if (params?.limit) query.set('limit', String(params.limit))
   if (params?.messageLimit) query.set('messageLimit', String(params.messageLimit))
   
-  const res = await gatewayFetch<{ sessions: Session[] }>(`/api/sessions?${query}`)
-  return res.sessions || []
+  const cacheKey = `sessions:${query.toString()}`
+  
+  return withSWR(cacheKey, CACHE_TTL.SESSIONS, async () => {
+    const res = await gatewayFetch<{ sessions: Session[] }>(`/api/sessions?${query}`)
+    return res.sessions || []
+  })
 }
 
 /**
- * Get session history
+ * Get session history (not cached - always fresh)
  */
 export async function getSessionHistory(sessionKey: string, params?: {
   limit?: number
@@ -119,6 +127,7 @@ export async function getSessionHistory(sessionKey: string, params?: {
 
 /**
  * Send a message to a session
+ * Invalidates session cache after sending
  */
 export async function sendMessage(params: {
   sessionKey?: string
@@ -127,19 +136,29 @@ export async function sendMessage(params: {
   message: string
   timeoutSeconds?: number
 }): Promise<{ response?: string }> {
-  return gatewayFetch('/api/sessions/send', {
+  const result = await gatewayFetch<{ response?: string }>('/api/sessions/send', {
     method: 'POST',
     body: JSON.stringify(params),
   })
+  
+  // Invalidate session caches after sending message
+  cache.clearPrefix('sessions:')
+  
+  return result
 }
 
 /**
  * List cron jobs
+ * Uses moderate TTL cache
  */
 export async function listCronJobs(includeDisabled = false): Promise<CronJob[]> {
-  const query = includeDisabled ? '?includeDisabled=true' : ''
-  const res = await gatewayFetch<{ jobs: CronJob[] }>(`/api/cron/jobs${query}`)
-  return res.jobs || []
+  const cacheKey = `cron:jobs:${includeDisabled}`
+  
+  return withCache(cacheKey, CACHE_TTL.CRON_JOBS, async () => {
+    const query = includeDisabled ? '?includeDisabled=true' : ''
+    const res = await gatewayFetch<{ jobs: CronJob[] }>(`/api/cron/jobs${query}`)
+    return res.jobs || []
+  })
 }
 
 /**
@@ -150,26 +169,38 @@ export async function getCronStatus(): Promise<{
   jobCount: number
   nextFire?: string
 }> {
-  return gatewayFetch('/api/cron/status')
+  const cacheKey = 'cron:status'
+  
+  return withSWR(cacheKey, CACHE_TTL.CRON_JOBS, async () => {
+    return gatewayFetch('/api/cron/status')
+  })
 }
 
 /**
  * Trigger a cron job manually
+ * Invalidates cron cache after triggering
  */
 export async function triggerCronJob(jobId: string): Promise<void> {
   await gatewayFetch('/api/cron/run', {
     method: 'POST',
     body: JSON.stringify({ jobId }),
   })
+  
+  // Invalidate cron caches after triggering
+  cache.clearPrefix('cron:')
 }
 
 /**
  * List available agents from config
+ * Uses longer TTL since agent list rarely changes
  */
 export async function listAgents(): Promise<AgentConfig[]> {
-  // This would ideally come from gateway, but for now we read from filesystem
-  const res = await gatewayFetch<{ agents: AgentConfig[] }>('/api/agents')
-  return res.agents || []
+  const cacheKey = 'agents:list'
+  
+  return withCache(cacheKey, CACHE_TTL.AGENTS, async () => {
+    const res = await gatewayFetch<{ agents: AgentConfig[] }>('/api/agents')
+    return res.agents || []
+  })
 }
 
 /**
@@ -183,4 +214,19 @@ export async function getSessionStatus(sessionKey?: string): Promise<{
 }> {
   const query = sessionKey ? `?sessionKey=${sessionKey}` : ''
   return gatewayFetch(`/api/session/status${query}`)
+}
+
+/**
+ * Clear all cached data
+ * Useful for forcing refresh
+ */
+export function clearGatewayCache(): void {
+  cache.clear()
+}
+
+/**
+ * Get cache statistics
+ */
+export function getGatewayCacheStats() {
+  return cache.stats()
 }

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as lancedb from '@/lib/lancedb'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting for search
+  const rateLimited = checkRateLimit(request, RATE_LIMITS.SEARCH)
+  if (rateLimited) return rateLimited
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get('q') || searchParams.get('query')
   const agentId = searchParams.get('agent') || searchParams.get('agentId')
@@ -45,6 +49,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { action, agentId, documents } = body
+    
+    // Apply stricter rate limiting for indexing
+    if (action === 'index') {
+      const rateLimited = checkRateLimit(request, RATE_LIMITS.INDEX)
+      if (rateLimited) return rateLimited
+    }
     
     if (action === 'index' && documents) {
       await lancedb.indexDocuments(documents)

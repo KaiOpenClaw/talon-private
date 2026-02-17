@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 
@@ -7,6 +8,10 @@ const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
  * This uses OpenClaw's sessions_spawn feature for cross-agent work
  */
 export async function POST(request: NextRequest) {
+  // Apply strict rate limiting for spawning
+  const rateLimited = checkRateLimit(request, RATE_LIMITS.SPAWN)
+  if (rateLimited) return rateLimited
+  
   try {
     const body = await request.json()
     const { 

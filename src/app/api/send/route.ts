@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting for message sending
+  const rateLimited = checkRateLimit(request, RATE_LIMITS.SEND_MESSAGE)
+  if (rateLimited) return rateLimited
+  
   try {
     const body = await request.json()
     const { agentId, message, sessionKey, timeoutSeconds = 120 } = body
