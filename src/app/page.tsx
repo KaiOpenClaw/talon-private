@@ -178,6 +178,13 @@ export default function Dashboard() {
         {/* Navigation */}
         <div className="border-t border-border-subtle p-2 space-y-0.5">
           <Link
+            href="/system"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 text-ink-secondary"
+          >
+            <Activity className="w-4 h-4" />
+            <span className="text-sm">System Status</span>
+          </Link>
+          <Link
             href="/workspaces"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 text-ink-secondary"
           >
@@ -185,11 +192,25 @@ export default function Dashboard() {
             <span className="text-sm">Workspaces</span>
           </Link>
           <Link
-            href="/command"
+            href="/skills"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 text-ink-secondary"
           >
             <Zap className="w-4 h-4" />
-            <span className="text-sm">Command Center</span>
+            <span className="text-sm">Skills</span>
+          </Link>
+          <Link
+            href="/cron"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 text-ink-secondary"
+          >
+            <Calendar className="w-4 h-4" />
+            <span className="text-sm">Cron Jobs</span>
+          </Link>
+          <Link
+            href="/channels"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 text-ink-secondary"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="text-sm">Channels</span>
           </Link>
           <Link
             href="/search"
@@ -197,13 +218,6 @@ export default function Dashboard() {
           >
             <Search className="w-4 h-4" />
             <span className="text-sm">Search</span>
-          </Link>
-          <Link
-            href="/schedule"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 text-ink-secondary"
-          >
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm">Schedule</span>
           </Link>
           <Link
             href="/settings"

@@ -131,7 +131,7 @@ async function indexAgent(agentId: string): Promise<IndexProgress> {
     content: string
     agentId: string
     filePath: string
-    fileType: string
+    fileType: 'memory' | 'soul' | 'tools' | 'agents'
     chunk: number
     timestamp: string
   }> = []
@@ -155,7 +155,7 @@ async function indexAgent(agentId: string): Promise<IndexProgress> {
         content: chunks[i],
         agentId,
         filePath: pattern,
-        fileType: type,
+        fileType: type as 'memory' | 'soul' | 'tools' | 'agents',
         chunk: i,
         timestamp: new Date().toISOString(),
       })
@@ -182,7 +182,7 @@ async function indexAgent(agentId: string): Promise<IndexProgress> {
           content: chunks[i],
           agentId,
           filePath: `memory/${file}`,
-          fileType: 'memory',
+          fileType: 'memory' as const,
           chunk: i,
           timestamp: new Date().toISOString(),
         })

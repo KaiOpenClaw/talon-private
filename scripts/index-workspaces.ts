@@ -189,7 +189,7 @@ async function main() {
 
   // Add to LanceDB
   console.log('\n💾 Saving to LanceDB...')
-  await table.add(docsWithVectors)
+  await table.add(docsWithVectors as any[])
   
   console.log('\n✅ Indexing complete!')
   console.log(`   ${docsWithVectors.length} chunks indexed`)
