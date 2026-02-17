@@ -1,360 +1,160 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { 
-  Activity, Server, Cpu, HardDrive, MemoryStick, 
-  Wifi, Clock, RefreshCw, CheckCircle2, XCircle, 
-  AlertTriangle, Zap, Calendar, Users, MessageSquare
-} from 'lucide-react'
+import { useState, useEffect, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 
-interface GatewayHealth {
-  status: string
-  version?: string
-  uptime?: number
-  pid?: number
-}
+// Dynamically import Three.js scene to avoid SSR issues
+const Scene3D = dynamic(() => import('@/components/status-scene'), { 
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-black" />
+})
 
-interface MachineStats {
-  hostname: string
-  cpu: { usage: number; cores: number }
-  memory: { used: number; total: number; percent: number }
-  disk: { used: number; total: number; percent: number }
-  loadAvg: number[]
-}
-
-interface ChannelStatus {
-  name: string
-  status: 'connected' | 'disconnected' | 'error'
-  accounts?: number
-}
-
-interface CronStatus {
-  running: boolean
-  jobCount: number
-  nextFire?: string
-}
-
-interface SessionStats {
-  total: number
-  active: number
+interface StatusData {
+  gateway: { status: string; version?: string; uptime?: number; activeCalls?: number }
+  machine: {
+    hostname: string
+    cpu: { usage: number; cores: number }
+    memory: { used: number; total: number; percent: number }
+    disk: { used: number; total: number; percent: number }
+    loadAvg: number[]
+  }
+  channels: { name: string; status: string; accounts?: number }[]
+  cron: { running: boolean; jobCount: number }
+  sessions: { total: number; active: number }
 }
 
 function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86400)
   const hours = Math.floor((seconds % 86400) / 3600)
   const mins = Math.floor((seconds % 3600) / 60)
-  if (days > 0) return `${days}d ${hours}h ${mins}m`
+  if (days > 0) return `${days}d ${hours}h`
   if (hours > 0) return `${hours}h ${mins}m`
   return `${mins}m`
 }
 
 function formatBytes(bytes: number): string {
   const gb = bytes / (1024 * 1024 * 1024)
-  return `${gb.toFixed(1)} GB`
+  return `${gb.toFixed(1)}GB`
 }
 
-function StatusCard({ 
-  title, 
-  icon: Icon, 
-  status, 
-  children 
-}: { 
-  title: string
-  icon: any
-  status: 'ok' | 'warning' | 'error' | 'loading'
-  children: React.ReactNode 
+function StatCard({ label, value, subvalue, color }: { 
+  label: string; value: string; subvalue?: string; color: string 
 }) {
-  const statusColors = {
-    ok: 'border-green-500/30 bg-green-500/5',
-    warning: 'border-yellow-500/30 bg-yellow-500/5',
-    error: 'border-red-500/30 bg-red-500/5',
-    loading: 'border-zinc-500/30 bg-zinc-500/5'
-  }
-  
-  const iconColors = {
-    ok: 'text-green-400',
-    warning: 'text-yellow-400',
-    error: 'text-red-400',
-    loading: 'text-zinc-400'
-  }
-
   return (
-    <div className={`rounded-lg border p-4 ${statusColors[status]}`}>
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className={`w-5 h-5 ${iconColors[status]}`} />
-        <h3 className="font-medium text-zinc-200">{title}</h3>
-        <div className="ml-auto">
-          {status === 'ok' && <CheckCircle2 className="w-4 h-4 text-green-400" />}
-          {status === 'warning' && <AlertTriangle className="w-4 h-4 text-yellow-400" />}
-          {status === 'error' && <XCircle className="w-4 h-4 text-red-400" />}
-          {status === 'loading' && <RefreshCw className="w-4 h-4 text-zinc-400 animate-spin" />}
-        </div>
-      </div>
-      <div className="space-y-2 text-sm">
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function ProgressBar({ percent, color = 'green' }: { percent: number; color?: string }) {
-  const colorClass = {
-    green: 'bg-green-500',
-    yellow: 'bg-yellow-500',
-    red: 'bg-red-500'
-  }[color] || 'bg-green-500'
-  
-  return (
-    <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
-      <div 
-        className={`h-full ${colorClass} transition-all duration-500`}
-        style={{ width: `${Math.min(100, percent)}%` }}
-      />
+    <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all hover:scale-105">
+      <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">{label}</div>
+      <div className={`text-2xl font-bold ${color}`}>{value}</div>
+      {subvalue && <div className="text-xs text-zinc-400 mt-1">{subvalue}</div>}
     </div>
   )
 }
 
 export default function StatusPage() {
-  const [gateway, setGateway] = useState<GatewayHealth | null>(null)
-  const [machine, setMachine] = useState<MachineStats | null>(null)
-  const [channels, setChannels] = useState<ChannelStatus[]>([])
-  const [cron, setCron] = useState<CronStatus | null>(null)
-  const [sessions, setSessions] = useState<SessionStats | null>(null)
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [data, setData] = useState<StatusData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchStatus = async () => {
-    try {
-      const res = await fetch('/api/status')
-      if (!res.ok) throw new Error('Failed to fetch status')
-      const data = await res.json()
-      
-      setGateway(data.gateway)
-      setMachine(data.machine)
-      setChannels(data.channels || [])
-      setCron(data.cron)
-      setSessions(data.sessions)
-      setLastUpdate(new Date())
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
-    fetchStatus()
-    const interval = setInterval(fetchStatus, 5000) // Refresh every 5s
+    const fetchData = async () => {
+      try {
+        const res = await fetch('/api/status')
+        const json = await res.json()
+        setData(json)
+      } catch (err) {
+        console.error('Failed to fetch status:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  const memoryColor = machine?.memory.percent 
-    ? machine.memory.percent > 90 ? 'red' : machine.memory.percent > 70 ? 'yellow' : 'green'
-    : 'green'
-  
-  const diskColor = machine?.disk.percent
-    ? machine.disk.percent > 90 ? 'red' : machine.disk.percent > 70 ? 'yellow' : 'green'
-    : 'green'
+  const healthy = data?.gateway.status === 'ok'
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Three.js Canvas */}
+      <div className="absolute inset-0">
+        <Scene3D data={data} />
+      </div>
+
+      {/* Overlay UI */}
+      <div className="relative z-10 p-6 pointer-events-none">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Zap className="w-6 h-6 text-amber-400" />
-              Talon Status
+            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+              <span className={`w-3 h-3 rounded-full ${healthy ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+              TALON
             </h1>
-            <p className="text-zinc-500 text-sm mt-1">
-              Real-time gateway & machine health
-            </p>
+            <p className="text-zinc-500 text-sm">OpenClaw Command Center</p>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-zinc-500">
-              Updated {lastUpdate.toLocaleTimeString()}
-            </span>
-            <button 
-              onClick={fetchStatus}
-              className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
+          <div className="text-right">
+            <div className="text-xs text-zinc-600">
+              {data?.machine.hostname || '---'}
+            </div>
+            <div className="text-xs text-zinc-500">
+              v{data?.gateway.version || '---'}
+            </div>
           </div>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400">
-            {error}
+        {/* Stats Grid */}
+        <div className="absolute bottom-6 left-6 right-6 pointer-events-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <StatCard 
+              label="Gateway" 
+              value={healthy ? 'ONLINE' : 'OFFLINE'} 
+              subvalue={data?.gateway.uptime ? `Up ${formatUptime(data.gateway.uptime)}` : undefined}
+              color={healthy ? 'text-green-400' : 'text-red-400'}
+            />
+            <StatCard 
+              label="CPU" 
+              value={`${data?.machine.cpu.usage?.toFixed(0) || 0}%`}
+              subvalue={`${data?.machine.cpu.cores || 0} cores`}
+              color={data?.machine.cpu.usage && data.machine.cpu.usage > 80 ? 'text-red-400' : 'text-amber-400'}
+            />
+            <StatCard 
+              label="Memory" 
+              value={`${data?.machine.memory.percent?.toFixed(0) || 0}%`}
+              subvalue={data?.machine.memory.total ? `${formatBytes(data.machine.memory.used)} / ${formatBytes(data.machine.memory.total)}` : undefined}
+              color={data?.machine.memory.percent && data.machine.memory.percent > 80 ? 'text-red-400' : 'text-emerald-400'}
+            />
+            <StatCard 
+              label="Disk" 
+              value={`${data?.machine.disk.percent?.toFixed(0) || 0}%`}
+              subvalue={data?.machine.disk.total ? `${formatBytes(data.machine.disk.used)} / ${formatBytes(data.machine.disk.total)}` : undefined}
+              color={data?.machine.disk.percent && data.machine.disk.percent > 80 ? 'text-red-400' : 'text-blue-400'}
+            />
+            <StatCard 
+              label="Cron Jobs" 
+              value={`${data?.cron.jobCount || 0}`}
+              subvalue={data?.cron.running ? 'Running' : 'Stopped'}
+              color="text-purple-400"
+            />
+            <StatCard 
+              label="Sessions" 
+              value={`${data?.sessions.active || 0}`}
+              subvalue={`${data?.sessions.total || 0} total`}
+              color="text-cyan-400"
+            />
           </div>
-        )}
-
-        {/* Status Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Gateway */}
-          <StatusCard 
-            title="Gateway" 
-            icon={Activity}
-            status={gateway?.status === 'ok' ? 'ok' : loading ? 'loading' : 'error'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Status</span>
-              <span className={gateway?.status === 'ok' ? 'text-green-400' : 'text-red-400'}>
-                {gateway?.status || 'checking...'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Version</span>
-              <span className="text-zinc-200">{gateway?.version || '-'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Uptime</span>
-              <span className="text-zinc-200">
-                {gateway?.uptime ? formatUptime(gateway.uptime) : '-'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">PID</span>
-              <span className="text-zinc-200">{gateway?.pid || '-'}</span>
-            </div>
-          </StatusCard>
-
-          {/* Machine */}
-          <StatusCard 
-            title="Machine" 
-            icon={Server}
-            status={machine ? 'ok' : loading ? 'loading' : 'error'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Hostname</span>
-              <span className="text-zinc-200 font-mono text-xs">{machine?.hostname || '-'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Load</span>
-              <span className="text-zinc-200">
-                {machine?.loadAvg ? machine.loadAvg.map(l => l.toFixed(2)).join(' / ') : '-'}
-              </span>
-            </div>
-          </StatusCard>
-
-          {/* CPU */}
-          <StatusCard 
-            title="CPU" 
-            icon={Cpu}
-            status={machine ? 'ok' : loading ? 'loading' : 'error'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Usage</span>
-              <span className="text-zinc-200">{machine?.cpu.usage?.toFixed(1) || 0}%</span>
-            </div>
-            <ProgressBar percent={machine?.cpu.usage || 0} color="green" />
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Cores</span>
-              <span className="text-zinc-200">{machine?.cpu.cores || '-'}</span>
-            </div>
-          </StatusCard>
-
-          {/* Memory */}
-          <StatusCard 
-            title="Memory" 
-            icon={MemoryStick}
-            status={machine ? (machine.memory.percent > 90 ? 'warning' : 'ok') : loading ? 'loading' : 'error'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Used</span>
-              <span className="text-zinc-200">
-                {machine ? `${formatBytes(machine.memory.used)} / ${formatBytes(machine.memory.total)}` : '-'}
-              </span>
-            </div>
-            <ProgressBar percent={machine?.memory.percent || 0} color={memoryColor} />
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Percent</span>
-              <span className="text-zinc-200">{machine?.memory.percent?.toFixed(1) || 0}%</span>
-            </div>
-          </StatusCard>
-
-          {/* Disk */}
-          <StatusCard 
-            title="Disk" 
-            icon={HardDrive}
-            status={machine ? (machine.disk.percent > 90 ? 'warning' : 'ok') : loading ? 'loading' : 'error'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Used</span>
-              <span className="text-zinc-200">
-                {machine ? `${formatBytes(machine.disk.used)} / ${formatBytes(machine.disk.total)}` : '-'}
-              </span>
-            </div>
-            <ProgressBar percent={machine?.disk.percent || 0} color={diskColor} />
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Percent</span>
-              <span className="text-zinc-200">{machine?.disk.percent?.toFixed(1) || 0}%</span>
-            </div>
-          </StatusCard>
-
-          {/* Channels */}
-          <StatusCard 
-            title="Channels" 
-            icon={Wifi}
-            status={channels.length > 0 ? 'ok' : loading ? 'loading' : 'warning'}
-          >
-            {channels.length === 0 && <span className="text-zinc-500">No channels configured</span>}
-            {channels.map(ch => (
-              <div key={ch.name} className="flex justify-between">
-                <span className="text-zinc-400">{ch.name}</span>
-                <span className={ch.status === 'connected' ? 'text-green-400' : 'text-red-400'}>
-                  {ch.status} {ch.accounts ? `(${ch.accounts})` : ''}
-                </span>
+          
+          {/* Channels row */}
+          <div className="mt-3 flex gap-3 flex-wrap">
+            {data?.channels.map(ch => (
+              <div 
+                key={ch.name}
+                className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 flex items-center gap-2"
+              >
+                <span className={`w-2 h-2 rounded-full ${ch.status === 'connected' ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-sm text-zinc-300">{ch.name}</span>
+                {ch.accounts && <span className="text-xs text-zinc-500">({ch.accounts})</span>}
               </div>
             ))}
-          </StatusCard>
-
-          {/* Cron */}
-          <StatusCard 
-            title="Cron Scheduler" 
-            icon={Calendar}
-            status={cron?.running ? 'ok' : loading ? 'loading' : 'warning'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Status</span>
-              <span className={cron?.running ? 'text-green-400' : 'text-yellow-400'}>
-                {cron?.running ? 'Running' : 'Stopped'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Jobs</span>
-              <span className="text-zinc-200">{cron?.jobCount || 0}</span>
-            </div>
-            {cron?.nextFire && (
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Next</span>
-                <span className="text-zinc-200 text-xs">{cron.nextFire}</span>
-              </div>
-            )}
-          </StatusCard>
-
-          {/* Sessions */}
-          <StatusCard 
-            title="Sessions" 
-            icon={Users}
-            status={sessions ? 'ok' : loading ? 'loading' : 'warning'}
-          >
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Total</span>
-              <span className="text-zinc-200">{sessions?.total || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Active (1h)</span>
-              <span className="text-green-400">{sessions?.active || 0}</span>
-            </div>
-          </StatusCard>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs text-zinc-600">
-          Talon • OpenClaw Dashboard
+          </div>
         </div>
       </div>
     </div>
