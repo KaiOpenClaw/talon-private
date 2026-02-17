@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'Talon - OpenClaw Dashboard',
@@ -33,7 +34,9 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="antialiased bg-black">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <script
           dangerouslySetInnerHTML={{
             __html: `
