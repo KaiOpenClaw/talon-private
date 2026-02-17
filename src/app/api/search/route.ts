@@ -1,75 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as lancedb from '@/lib/lancedb'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:5050'
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
-
-// Use gateway's memory search instead of local LanceDB
-// This works on Vercel since it's just an API call
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const query = searchParams.get('q') || searchParams.get('query')
+  const agentId = searchParams.get('agent') || searchParams.get('agentId')
+  const limit = parseInt(searchParams.get('limit') || '10')
+  
+  if (!query) {
+    return NextResponse.json({ error: 'Query required' }, { status: 400 })
+  }
+  
+  try {
+    // Check if LanceDB is available
+    const available = await lancedb.isAvailable()
+    if (!available) {
+      return NextResponse.json({
+        error: 'Search not available',
+        message: 'LanceDB not configured or OPENAI_API_KEY missing'
+      }, { status: 503 })
+    }
+    
+    const results = await lancedb.search(query, {
+      agentId: agentId || undefined,
+      limit,
+      minScore: 0.5,
+    })
+    
+    return NextResponse.json({
+      query,
+      results,
+      count: results.length,
+    })
+  } catch (error) {
+    console.error('Search error:', error)
+    return NextResponse.json({
+      error: 'Search failed',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { query, scope, scopeId, limit = 10, minScore = 0.5 } = body
+    const { action, agentId, documents } = body
     
-    if (!query) {
-      return NextResponse.json({ error: 'Query is required' }, { status: 400 })
+    if (action === 'index' && documents) {
+      await lancedb.indexDocuments(documents)
+      return NextResponse.json({ ok: true, indexed: documents.length })
     }
     
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (GATEWAY_TOKEN) headers['Authorization'] = `Bearer ${GATEWAY_TOKEN}`
-    
-    // Call gateway memory search
-    const res = await fetch(`${GATEWAY_URL}/api/memory/search`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        query,
-        maxResults: limit,
-        minScore,
-        scope: scopeId || scope,
-      }),
-    })
-    
-    if (!res.ok) {
-      // Return empty results instead of error for graceful degradation
-      return NextResponse.json({ 
-        results: [],
-        query,
-        message: 'Gateway memory search unavailable',
-      })
+    if (action === 'delete' && agentId) {
+      await lancedb.deleteAgentDocuments(agentId)
+      return NextResponse.json({ ok: true, deleted: agentId })
     }
     
-    const data = await res.json()
-    return NextResponse.json({
-      results: data.results || [],
-      query,
-    })
+    if (action === 'stats') {
+      const stats = await lancedb.getStats()
+      return NextResponse.json(stats)
+    }
+    
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error) {
-    console.error('Search error:', error)
-    return NextResponse.json({ 
-      results: [],
-      error: 'Search failed',
-    })
+    console.error('Search POST error:', error)
+    return NextResponse.json({
+      error: 'Operation failed',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
-}
-
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const query = searchParams.get('query') || searchParams.get('q')
-  
-  if (!query) {
-    return NextResponse.json({ error: 'Query parameter required' }, { status: 400 })
-  }
-  
-  // Reuse POST logic
-  const fakeRequest = {
-    json: async () => ({
-      query,
-      limit: parseInt(searchParams.get('limit') || '10'),
-      scope: searchParams.get('scope'),
-      scopeId: searchParams.get('scopeId'),
-    }),
-  } as NextRequest
-  
-  return POST(fakeRequest)
 }

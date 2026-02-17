@@ -1,23 +1,36 @@
-# Render Blueprint - Talon (OpenClaw UI)
+# Render Blueprint - Talon (OpenClaw Dashboard)
 # Deploy: render.com/new → select this repo
+# LanceDB requires native modules - Render handles this
 
 services:
   - type: web
     name: talon
     runtime: node
     region: oregon
-    plan: free
-    buildCommand: npm install && npm run build
+    plan: starter  # Need starter for native modules
+    buildCommand: |
+      npm install
+      npm run build
     startCommand: npm run start
-    healthCheckPath: /
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: GATEWAY_URL
-        sync: false  # Set manually in Render dashboard
-      - key: GATEWAY_TOKEN
-        sync: false  # Set manually in Render dashboard
-      - key: AGENTS_DIR
-        value: /opt/render/project/src/agents  # Optional, for local agent files
       - key: PORT
-        value: 4000
+        value: 10000
+      # Gateway connection
+      - key: GATEWAY_URL
+        sync: false  # Set in Render dashboard
+      - key: GATEWAY_TOKEN
+        sync: false
+      # Talon API (for agent workspaces)
+      - key: TALON_API_URL
+        sync: false
+      - key: TALON_API_TOKEN
+        sync: false
+      # OpenAI (for embeddings)
+      - key: OPENAI_API_KEY
+        sync: false
+      # LanceDB storage
+      - key: LANCEDB_PATH
+        value: /opt/render/project/.lancedb
