@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import ChatPanel from '@/components/chat-panel'
 import { LogoutButton } from '@/components/auth-status'
+import { ConnectionStatus } from '@/components/connection-status'
+import { useRealtimeData } from '@/lib/useWebSocket'
 
 interface Agent {
   id: string
@@ -38,51 +40,79 @@ interface Blocker {
 }
 
 export default function Dashboard() {
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [blockers, setBlockers] = useState<Blocker[]>([])
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-  const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'chat' | 'agents' | 'sessions'>('chat')
 
-  // Load data once on mount
+  // Real-time data using WebSocket
+  const { 
+    data: agents = [], 
+    isConnected: agentsConnected,
+    refreshData: refreshAgents 
+  } = useRealtimeData<Agent[]>('agents', [])
+  
+  const { 
+    data: sessions = [], 
+    isConnected: sessionsConnected,
+    refreshData: refreshSessions 
+  } = useRealtimeData<Session[]>('sessions', [])
+
+  // Fallback loading for static data
+  const [blockers, setBlockers] = useState<Blocker[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Load initial data and blockers (not real-time yet)
   useEffect(() => {
     let mounted = true
     
-    async function load() {
+    async function loadInitialData() {
       try {
-        const [agentsRes, sessionsRes, blockersRes] = await Promise.all([
-          fetch('/api/agents'),
-          fetch('/api/sessions/list?activeMinutes=120&limit=20'),
-          fetch('/api/blockers'),
-        ])
+        // Load agents and sessions if WebSocket isn't connected
+        const promises = []
+        
+        if (!agentsConnected && agents.length === 0) {
+          promises.push(fetch('/api/agents').then(res => res.json()))
+        }
+        
+        if (!sessionsConnected && sessions.length === 0) {
+          promises.push(fetch('/api/sessions/list?activeMinutes=120&limit=20').then(res => res.json()))
+        }
+        
+        // Always load blockers (could be made real-time later)
+        promises.push(fetch('/api/blockers').then(res => res.json()))
+        
+        if (promises.length === 0) {
+          setLoading(false)
+          return
+        }
+        
+        const results = await Promise.all(promises)
         
         if (!mounted) return
         
-        const agentsData = await agentsRes.json()
-        const sessionsData = await sessionsRes.json()
-        const blockersData = await blockersRes.json()
-        
-        const agentsList = agentsData.agents || []
-        setAgents(agentsList)
-        setSessions(sessionsData.sessions || [])
-        setBlockers(blockersData.blockers || [])
-        
-        // Auto-select first agent if none selected
-        if (agentsList.length > 0 && !selectedAgent) {
-          setSelectedAgent(agentsList[0])
+        // Process results based on what was loaded
+        if (results.length >= 1) {
+          const blockersData = results[results.length - 1] // Last is always blockers
+          setBlockers(blockersData.blockers || [])
         }
+        
       } catch (e) {
-        console.error('Failed to load:', e)
+        console.error('Failed to load initial data:', e)
       } finally {
         if (mounted) setLoading(false)
       }
     }
     
-    load()
+    loadInitialData()
     
     return () => { mounted = false }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentsConnected, sessionsConnected, agents.length, sessions.length])
+
+  // Auto-select first agent when agents are loaded
+  useEffect(() => {
+    if (agents.length > 0 && !selectedAgent) {
+      setSelectedAgent(agents[0])
+    }
+  }, [agents, selectedAgent])
 
   const activeSessionCount = sessions.filter(s => s.kind === 'main' || s.kind === 'channel').length
 
@@ -94,7 +124,10 @@ export default function Dashboard() {
         <div className="h-14 flex items-center gap-2 px-4 border-b border-border-subtle">
           <Terminal className="w-6 h-6 text-terminal-500" />
           <span className="font-semibold text-lg">Talon</span>
-          <span className="text-xs text-ink-muted ml-auto">OpenClaw UI</span>
+          <div className="ml-auto flex items-center gap-2">
+            <ConnectionStatus variant="icon" />
+            <span className="text-xs text-ink-muted">OpenClaw UI</span>
+          </div>
         </div>
 
         {/* Quick Stats */}

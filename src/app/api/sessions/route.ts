@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { broadcastSessionUpdate } from '@/lib/websocket-broadcast'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 
@@ -31,6 +32,12 @@ export async function GET(request: NextRequest) {
     }
     
     const data = await res.json()
+    
+    // Broadcast session updates to connected WebSocket clients
+    if (data.sessions) {
+      broadcastSessionUpdate(data.sessions)
+    }
+    
     return NextResponse.json(data)
   } catch (error) {
     console.error('Sessions API error:', error)
