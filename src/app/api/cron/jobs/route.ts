@@ -6,6 +6,7 @@
 import { NextRequest } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { logger } from '@/lib/logger'
 
 const execAsync = promisify(exec)
 
@@ -85,7 +86,13 @@ export async function GET(request: NextRequest) {
     let command = 'openclaw cron list --json'
     if (includeDisabled) command += ' --all'
     
-    console.log('Executing:', command)
+    logger.info('Executing OpenClaw CLI command', {
+      component: 'CronJobsAPI',
+      action: 'listCronJobs',
+      command,
+      includeDisabled,
+      timeout: 10000
+    })
     
     const { stdout, stderr } = await execAsync(command, { 
       timeout: 10000,
@@ -93,7 +100,12 @@ export async function GET(request: NextRequest) {
     })
     
     if (stderr && !stderr.includes('npm notice')) {
-      console.error('OpenClaw CLI stderr:', stderr)
+      logger.warn('OpenClaw CLI stderr output', {
+        component: 'CronJobsAPI',
+        action: 'listCronJobs',
+        stderr,
+        command
+      })
     }
     
     const result = JSON.parse(stdout)
@@ -108,7 +120,12 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Cron Jobs API error:', error)
+    logger.error('Cron Jobs API error', {
+      component: 'CronJobsAPI',
+      action: 'listCronJobs',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     
     // Return mock data as fallback
     return Response.json({

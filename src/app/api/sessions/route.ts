@@ -6,6 +6,7 @@
 import { NextRequest } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { logger } from '@/lib/logger'
 
 const execAsync = promisify(exec)
 
@@ -90,7 +91,12 @@ export async function GET(request: NextRequest) {
     if (limit) command += ` --limit ${limit}`
     if (activeMinutes) command += ` --active ${activeMinutes}`
     
-    console.log('Executing:', command)
+    logger.info('Executing OpenClaw CLI command', {
+      component: 'SessionsAPI',
+      action: 'listSessions',
+      command,
+      timeout: 10000
+    })
     
     const { stdout, stderr } = await execAsync(command, { 
       timeout: 10000,
@@ -98,7 +104,12 @@ export async function GET(request: NextRequest) {
     })
     
     if (stderr && !stderr.includes('npm notice')) {
-      console.error('OpenClaw CLI stderr:', stderr)
+      logger.warn('OpenClaw CLI stderr output', {
+        component: 'SessionsAPI',
+        action: 'listSessions',
+        stderr,
+        command
+      })
     }
     
     const result = JSON.parse(stdout)
@@ -119,7 +130,12 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Sessions API error:', error)
+    logger.error('Sessions API error', {
+      component: 'SessionsAPI',
+      action: 'listSessions',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     
     // Return mock data as fallback
     return Response.json({

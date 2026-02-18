@@ -5,6 +5,7 @@
 
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { logger } from '@/lib/logger'
 
 const execAsync = promisify(exec)
 
@@ -27,7 +28,12 @@ export async function GET() {
   try {
     const command = 'openclaw cron status --json'
     
-    console.log('Executing:', command)
+    logger.info('Executing OpenClaw CLI command', {
+      component: 'CronStatusAPI',
+      action: 'getCronStatus',
+      command,
+      timeout: 10000
+    })
     
     const { stdout, stderr } = await execAsync(command, { 
       timeout: 10000,
@@ -35,7 +41,12 @@ export async function GET() {
     })
     
     if (stderr && !stderr.includes('npm notice')) {
-      console.error('OpenClaw CLI stderr:', stderr)
+      logger.warn('OpenClaw CLI stderr output', {
+        component: 'CronStatusAPI',
+        action: 'getCronStatus',
+        stderr,
+        command
+      })
     }
     
     const result: OpenClawCronStatus = JSON.parse(stdout)
@@ -50,7 +61,12 @@ export async function GET() {
     return Response.json(status)
     
   } catch (error) {
-    console.error('Cron Status API error:', error)
+    logger.error('Cron Status API error', {
+      component: 'CronStatusAPI',
+      action: 'getCronStatus',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     
     // Return mock data as fallback
     return Response.json({
