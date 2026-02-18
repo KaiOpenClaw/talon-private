@@ -4,8 +4,8 @@
 
 Transform your AI agent swarm from scattered CLI commands into a unified command center. Built for teams managing production AI agent fleets.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/KaiOpenClaw/talon-private)
-[![GitHub Stars](https://img.shields.io/github/stars/KaiOpenClaw/talon-private?style=social)](https://github.com/KaiOpenClaw/talon-private)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/TerminalGravity/talon)
+[![GitHub Stars](https://img.shields.io/github/stars/TerminalGravity/talon?style=social)](https://github.com/TerminalGravity/talon)
 
 ---
 
@@ -76,7 +76,7 @@ openclaw memory search "project updates"
 
 ### Local Development
 ```bash
-git clone https://github.com/KaiOpenClaw/talon-private
+git clone https://github.com/TerminalGravity/talon
 cd talon-private
 npm install
 cp .env.example .env.local
@@ -209,7 +209,7 @@ TALON_API_TOKEN=your_api_token_here
 - ✅ Organized issues across 4 project boards
 - ✅ Updated all critical issues with proper milestones and priorities
 
-View our [Issues](https://github.com/KaiOpenClaw/talon-private/issues) and [Projects](https://github.com/KaiOpenClaw/talon-private/projects) for detailed progress tracking.
+View our [Issues](https://github.com/TerminalGravity/talon/issues) and [Projects](https://github.com/TerminalGravity/talon/projects) for detailed progress tracking.
 
 ## 🤝 Contributing
 
@@ -217,7 +217,7 @@ Talon is open source and community-driven. We welcome contributions!
 
 - [**Contributing Guide**](CONTRIBUTING.md)
 - [**Code of Conduct**](CODE_OF_CONDUCT.md)
-- [**Issues & Feature Requests**](https://github.com/KaiOpenClaw/talon-private/issues)
+- [**Issues & Feature Requests**](https://github.com/TerminalGravity/talon/issues)
 
 ---
 
@@ -241,7 +241,7 @@ Contact: [enterprise@openclaw.com](mailto:enterprise@openclaw.com)
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=KaiOpenClaw/talon-private&type=Date)](https://star-history.com/#KaiOpenClaw/talon-private&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=TerminalGravity/talon&type=Date)](https://star-history.com/#TerminalGravity/talon&Date)
 
 ---
 
