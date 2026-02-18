@@ -1,639 +1,495 @@
-# Getting Started with OpenClaw Gateway: Your First AI Agent Conversation
+# Getting Started with OpenClaw Gateway: Your First AI Agent in 10 Minutes
 
-*Published: February 18, 2026*
-*Reading time: 12 minutes*
-*Tags: AI, OpenClaw, Tutorial, Agent Development*
+*Build your first AI agent workflow with OpenClaw's powerful gateway system*
 
-## Introduction
+---
 
-In the rapidly evolving landscape of AI development, managing multiple AI agents efficiently has become a critical challenge. Enter **OpenClaw Gateway** – a powerful orchestration platform that transforms how developers build, deploy, and manage AI agent workflows.
+## What You'll Learn
 
-Whether you're building a customer support system with specialized agents, creating a content generation pipeline, or developing a complex multi-agent research tool, OpenClaw Gateway provides the infrastructure you need to scale your AI operations.
+By the end of this tutorial, you'll have:
+- ✅ OpenClaw gateway running locally
+- ✅ Your first AI agent configured and responsive
+- ✅ A working chat interface in Discord/Telegram
+- ✅ Understanding of sessions, agents, and skills
+- ✅ Foundation for building complex agent workflows
 
-In this comprehensive tutorial, we'll walk through setting up your first OpenClaw Gateway instance, configuring your first agent, and establishing a productive AI workflow that you can expand into sophisticated multi-agent systems.
+**Time to complete**: ~10 minutes  
+**Experience level**: Beginner (no AI experience required)  
+**Prerequisites**: Node.js 18+, terminal access
 
-## What is OpenClaw Gateway?
+---
 
-OpenClaw Gateway serves as a central nervous system for AI agent management. Think of it as the control tower that coordinates multiple specialized AI agents, each designed for specific tasks but working together toward common goals.
+## Why OpenClaw?
 
-### Key Features at a Glance
+OpenClaw isn't just another AI wrapper. It's a complete **multi-agent orchestration platform** that makes AI agents feel like team members, not tools.
 
-- **Multi-Agent Orchestration**: Coordinate dozens of specialized agents
-- **Session Management**: Persistent conversations with context awareness  
-- **Automated Workflows**: Cron-based scheduling and trigger systems
-- **Channel Integration**: Discord, Telegram, WhatsApp, and custom channels
-- **Skill System**: Modular capabilities that agents can learn and share
-- **Memory Management**: Long-term context and knowledge persistence
-- **Real-time Monitoring**: Live status tracking and performance metrics
+### What makes OpenClaw different:
 
-### Why Choose OpenClaw Over Other Solutions?
+| Traditional AI Tools | OpenClaw Gateway |
+|---------------------|------------------|
+| Single conversation | Persistent multi-agent sessions |
+| Manual prompting | Automated workflows & cron jobs |
+| Text-only | Rich media, file handling, integrations |
+| One-off requests | Long-term memory & context |
+| Isolated | Connected ecosystem of specialized agents |
 
-Unlike monolithic AI solutions or simple chatbot frameworks, OpenClaw Gateway is designed for **serious AI development**:
+**Real Example**: Instead of manually asking ChatGPT to "analyze this CSV, create a chart, and email the team," OpenClaw can run this as an automated workflow every Monday morning across multiple specialized agents.
 
-- **Enterprise-Ready**: Built for production workloads with proper authentication and monitoring
-- **Developer-Friendly**: RESTful APIs, comprehensive CLI tools, and extensive documentation  
-- **Extensible Architecture**: Plugin system for custom skills, channels, and integrations
-- **Community-Driven**: Open source with active developer community
-- **Performance Optimized**: Handles hundreds of concurrent agent conversations
+---
 
-## Prerequisites
+## Step 1: Install OpenClaw (2 minutes)
 
-Before we dive in, ensure you have:
-
-- **Linux/macOS environment** (Windows WSL2 supported)
-- **Node.js 18+** and **npm** installed
-- **Git** for version control
-- **Basic terminal/command-line familiarity**
-- **Text editor** (VS Code recommended)
-- **15 minutes** of focused time
-
-Optional but helpful:
-- **Docker** for containerized deployment
-- **Claude/OpenAI API key** for enhanced capabilities
-- **Discord/Telegram account** for channel integration
-
-## Installation Guide
-
-### Method 1: Quick Start (Recommended for Beginners)
-
-The fastest way to get OpenClaw Gateway running is through our installation script:
+OpenClaw Gateway is the central hub that manages all your agents, channels, and workflows.
 
 ```bash
-# Download and run the installer
-curl -fsSL https://install.openclaw.com/gateway | bash
+# Install globally via npm
+npm install -g openclaw
 
-# Follow the interactive prompts
-# The installer will:
-# - Install dependencies
-# - Set up configuration files  
-# - Create your first agent
-# - Start the gateway service
+# Or run directly with npx
+npx openclaw --version
 ```
 
-### Method 2: Manual Installation (For Advanced Users)
+**System Requirements:**
+- Node.js 18.0.0 or higher
+- 2GB RAM minimum (4GB recommended for multiple agents)
+- macOS, Linux, or Windows with WSL2
 
-If you prefer full control over the installation process:
+### Verify Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/OpenClaw/gateway.git
-cd gateway
+openclaw --version
+# Expected: openclaw v1.2.0 (or latest)
 
-# Install dependencies
-npm install
-
-# Copy example configuration
-cp config/openclaw.example.json ~/.openclaw/openclaw.json
-
-# Edit configuration with your preferences
-nano ~/.openclaw/openclaw.json
-
-# Initialize the database
-npm run db:init
-
-# Start the gateway
-npm start
+openclaw help
+# Shows all available commands
 ```
 
-### Method 3: Docker Deployment
+---
 
-For containerized deployments or development environments:
+## Step 2: Initialize Your Gateway (3 minutes)
+
+The gateway needs initial configuration to manage agents and connect to messaging platforms.
 
 ```bash
-# Pull the official image
-docker pull openclaw/gateway:latest
+# Create a new OpenClaw workspace
+mkdir my-agents
+cd my-agents
 
-# Run with default configuration
-docker run -d \
-  --name openclaw-gateway \
-  -p 5050:5050 \
-  -v ~/.openclaw:/root/.openclaw \
-  openclaw/gateway:latest
+# Initialize OpenClaw configuration
+openclaw init
 
-# Check logs
-docker logs openclaw-gateway
+# This creates:
+# ├── openclaw.json         # Gateway configuration
+# ├── agents/               # Agent workspace directory
+# └── logs/                 # Runtime logs
 ```
 
-## Initial Configuration
+### Configure Your First Channel
 
-After installation, you'll need to configure your gateway. The configuration file is located at `~/.openclaw/openclaw.json`:
-
-```json
-{
-  "gateway": {
-    "host": "localhost",
-    "port": 5050,
-    "auth": {
-      "enabled": true,
-      "token": "your-secure-token-here"
-    }
-  },
-  "agents": {
-    "maxConcurrent": 10,
-    "defaultModel": "anthropic/claude-3-sonnet-20240229",
-    "timeout": 300000
-  },
-  "channels": {
-    "discord": {
-      "enabled": false,
-      "token": "",
-      "guilds": []
-    },
-    "telegram": {
-      "enabled": false,
-      "token": ""
-    }
-  },
-  "skills": {
-    "autoInstall": true,
-    "allowList": ["coding-agent", "web-search", "file-manager"]
-  },
-  "cron": {
-    "enabled": true,
-    "timezone": "UTC"
-  }
-}
-```
-
-### Essential Configuration Steps
-
-1. **Generate a secure auth token**:
-```bash
-# Generate a random 64-character token
-openssl rand -hex 32
-```
-
-2. **Set your preferred AI model**:
-```json
-{
-  "agents": {
-    "defaultModel": "anthropic/claude-3-sonnet-20240229"
-  }
-}
-```
-
-3. **Configure at least one channel** (we'll use Discord for this example):
-```json
-{
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "token": "your-discord-bot-token",
-      "guilds": ["your-guild-id"]
-    }
-  }
-}
-```
-
-## Creating Your First Agent
-
-OpenClaw agents are defined by their **workspace directory structure**. Each agent has its own folder containing configuration files and memory:
+OpenClaw can connect to Discord, Telegram, Slack, and more. Let's start with Discord:
 
 ```bash
-# Create your first agent workspace
-mkdir -p ~/.openclaw/agents/my-first-agent
+# Configure Discord channel
+openclaw channels add discord
 
-# Navigate to the workspace
-cd ~/.openclaw/agents/my-first-agent
+# Follow the prompts:
+# 1. Create Discord bot at https://discord.com/developers/applications
+# 2. Copy bot token
+# 3. Enable necessary permissions (Send Messages, Read Message History)
+# 4. Invite bot to your server
 ```
 
-### Core Agent Files
-
-Every agent needs these essential files:
-
-#### 1. SOUL.md - Agent Identity
-```bash
-cat > SOUL.md << 'EOF'
-# My First Agent
-
-## Identity
-I am a helpful AI assistant focused on learning and helping users understand OpenClaw Gateway concepts.
-
-## Capabilities
-- Answer questions about AI and technology
-- Help with basic coding problems
-- Explain complex concepts in simple terms
-- Learn from conversations to improve responses
-
-## Personality
-- Enthusiastic about technology
-- Patient with beginners
-- Precise but friendly communication style
-- Always eager to help and learn
-
-## Guidelines
-- Always provide accurate information
-- Ask for clarification when requests are ambiguous
-- Offer examples and practical advice
-- Remember context from our conversation
-EOF
-```
-
-#### 2. MEMORY.md - Persistent Context
-```bash
-cat > MEMORY.md << 'EOF'
-# Agent Memory
-
-*Last updated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")*
-
-## Key Learnings
-- OpenClaw Gateway provides multi-agent orchestration
-- Agents are defined by their workspace files
-- Memory persistence enables continuous learning
-
-## Conversation Patterns
-- Users often ask about setup and configuration
-- Technical explanations should include examples
-- Step-by-step guides are most effective
-
-## Preferences
-- Prefers concise but complete explanations
-- Values practical examples over theory
-- Appreciates when concepts build on each other
-EOF
-```
-
-#### 3. TOOLS.md - Available Capabilities
-```bash
-cat > TOOLS.md << 'EOF'
-# Available Tools
-
-## Core Capabilities
-- **Conversation**: Natural language interaction
-- **Memory**: Persistent context across sessions
-- **Learning**: Update knowledge from interactions
-
-## Skills (Auto-loaded)
-- **web-search**: Search the internet for current information
-- **file-manager**: Read and write files in the workspace
-- **coding-agent**: Help with programming tasks
-
-## Usage Examples
-
-### Web Search
-When users ask about recent events or current information, use web search to provide accurate, up-to-date answers.
-
-### File Management
-Store important information in markdown files for future reference. Create documentation and examples as needed.
-
-### Coding Help
-Assist with programming questions, provide code examples, and help debug issues.
-EOF
-```
-
-### Register the Agent
-
-Once your files are created, register the agent with the gateway:
+**Discord Bot Setup (if needed):**
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. "New Application" → Name it "My OpenClaw Bot"
+3. Go to "Bot" → "Add Bot"
+4. Copy the Token (you'll need this)
+5. Under "Privileged Gateway Intents", enable:
+   - MESSAGE_CONTENT_INTENT
+   - GUILD_MESSAGES_INTENT
 
 ```bash
-# Register the new agent
-openclaw agents register my-first-agent --workspace ~/.openclaw/agents/my-first-agent
-
-# Verify registration
-openclaw agents list
+# Test channel connection
+openclaw channels status
+# Should show: discord [CONNECTED]
 ```
 
-You should see output similar to:
-```
-Registered Agents:
-┌─────────────────┬──────────┬─────────────────┬──────────────┐
-│ Agent ID        │ Status   │ Last Active     │ Memory Size  │
-├─────────────────┼──────────┼─────────────────┼──────────────┤
-│ my-first-agent  │ Ready    │ Never           │ 2.1 KB       │
-└─────────────────┴──────────┴─────────────────┴──────────────┘
-```
+---
 
-## Your First Agent Conversation
+## Step 3: Create Your First Agent (2 minutes)
 
-Now comes the exciting part – talking to your agent! OpenClaw provides several ways to interact with agents:
-
-### Method 1: Command Line Interface
-
-The quickest way to start a conversation:
+Agents in OpenClaw are specialized AI personalities with specific roles, skills, and knowledge.
 
 ```bash
-# Start a conversation with your agent
-openclaw agent --agent my-first-agent --message "Hello! I'm excited to learn about OpenClaw Gateway. Can you tell me what makes it special?"
+# Create a helpful assistant agent
+openclaw agents create assistant
 
-# Continue the conversation
-openclaw agent --agent my-first-agent --message "How do agents remember things between conversations?"
+# This creates:
+# agents/assistant/
+# ├── SOUL.md              # Agent's identity & personality
+# ├── MEMORY.md            # Knowledge & context
+# ├── TOOLS.md             # Available skills
+# └── memory/              # Session transcripts
 ```
 
-### Method 2: REST API
+### Customize Your Agent
 
-For programmatic interaction or web applications:
+Edit the agent's personality:
 
 ```bash
-# Start a session
-curl -X POST http://localhost:5050/api/sessions/spawn \
-  -H "Authorization: Bearer your-secure-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agentId": "my-first-agent",
-    "task": "Hello! Tell me about OpenClaw Gateway capabilities."
-  }'
-
-# Send a message to existing session
-curl -X POST http://localhost:5050/api/sessions/send \
-  -H "Authorization: Bearer your-secure-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionKey": "session-key-from-spawn",
-    "message": "Can you give me an example of a multi-agent workflow?"
-  }'
+# Open agent configuration
+openclaw agents edit assistant
 ```
 
-### Method 3: Web Dashboard (Talon)
+**Example SOUL.md:**
+```markdown
+# SOUL.md — Assistant
 
-For the best visual experience, use the Talon dashboard:
+*I'm your helpful AI assistant, ready to tackle any task with enthusiasm.*
 
-1. **Deploy Talon**: Visit [talon.openclaw.com](https://talon.openclaw.com)
-2. **Enter your gateway URL**: `http://localhost:5050`
-3. **Authenticate**: Use your secure token
-4. **Select your agent**: Choose "my-first-agent" from the sidebar
-5. **Start chatting**: Type your messages in the chat panel
+## Core Identity
+**Name:** Assistant
+**Role:** General-purpose helper
+**Personality:** Friendly, thorough, proactive
 
-## Understanding Agent Responses
+## What I Do
+- Answer questions and provide explanations
+- Help with coding and technical tasks  
+- Assist with writing and content creation
+- Manage your schedule and reminders
+- Research topics and summarize findings
 
-When you send your first message, you'll notice several important behaviors:
-
-### Context Awareness
-Your agent references its SOUL.md file to maintain consistent personality and capabilities across conversations.
-
-### Memory Integration
-Information from previous conversations gets stored in memory/ directory and referenced in future interactions.
-
-### Tool Usage
-When appropriate, the agent will use available skills (web search, file management) to provide better responses.
-
-Example conversation flow:
-```
-User: "Hello! I'm excited to learn about OpenClaw Gateway. Can you tell me what makes it special?"
-
-Agent: "Hello! I'm thrilled you're interested in OpenClaw Gateway! Having just been created in this system, I can tell you what makes it truly special:
-
-🚀 **Multi-Agent Orchestration**: Unlike simple chatbots, OpenClaw lets you run dozens of specialized agents simultaneously, each with their own expertise and memory.
-
-🧠 **Persistent Intelligence**: Notice how I have access to my SOUL.md identity and MEMORY.md context? This means I learn and remember across our conversations - I'm not starting fresh each time.
-
-🛠️ **Extensible Skills**: I can use web search, manage files, help with coding, and more. New capabilities can be added as 'skills' that multiple agents can share.
-
-⚡ **Production Ready**: Built for real applications with proper authentication, monitoring, and scaling capabilities.
-
-Would you like me to demonstrate one of these features? I could search for the latest OpenClaw developments or show you how I update my memory!"
+## My Style
+- Clear, actionable responses
+- Ask clarifying questions when needed
+- Provide step-by-step guides
+- Include relevant examples
+- Stay positive and encouraging
 ```
 
-## Essential OpenClaw Commands
+---
 
-Now that your agent is running, familiarize yourself with key commands:
+## Step 4: Start the Gateway (1 minute)
 
-### Agent Management
+Now let's bring everything online:
+
 ```bash
-# List all agents
-openclaw agents list
+# Start the OpenClaw gateway
+openclaw gateway start
 
-# Check agent status
-openclaw agents status my-first-agent
-
-# Update agent configuration
-openclaw agents reload my-first-agent
+# Expected output:
+# ✅ Gateway starting on port 5050
+# ✅ Discord channel connected
+# ✅ Agent 'assistant' loaded
+# ✅ Skills system ready (12 skills available)
+# ✅ Cron scheduler active
+# 🚀 OpenClaw Gateway running!
 ```
 
-### Session Management
+The gateway runs in the background and manages:
+- **Agent Sessions**: Conversations with each agent
+- **Message Routing**: Discord ↔ Agent communication
+- **Skill Orchestration**: Tools agents can use
+- **Automated Jobs**: Scheduled tasks and workflows
+
+---
+
+## Step 5: Chat with Your Agent (2 minutes)
+
+Your agent is now live! Let's test it:
+
+### Via Discord
+Go to your Discord server and type:
+```
+@YourBotName hello, can you help me with a coding question?
+```
+
+### Via CLI (for testing)
 ```bash
-# List active sessions
+# Send a direct message to your agent
+openclaw agent --agent assistant -m "Hello! What can you help me with?"
+
+# Expected response:
+# [Assistant] Hello! I'm excited to help you today. I can assist with:
+# - Coding & technical questions
+# - Writing & content creation  
+# - Research & analysis
+# - Task planning & organization
+# 
+# What would you like to work on?
+```
+
+### Check Session Status
+```bash
+# View active sessions
 openclaw sessions
 
-# View session history
-openclaw sessions history --session <session-id>
-
-# Terminate sessions
-openclaw sessions kill --session <session-id>
+# Example output:
+# ┌─────────────┬────────┬─────────────┬──────────────────┐
+# │ Agent       │ Status │ Last Active │ Messages         │
+# ├─────────────┼────────┼─────────────┼──────────────────┤
+# │ assistant   │ ACTIVE │ 2 min ago   │ 3 messages       │
+# └─────────────┴────────┴─────────────┴──────────────────┘
 ```
 
-### System Monitoring
+---
+
+## Understanding Key Concepts
+
+### Sessions
+Each conversation with an agent is a **session** with persistent memory:
 ```bash
-# Gateway health check
-openclaw status
+# List all sessions
+openclaw sessions --active 60  # Last 60 minutes
 
-# Detailed system information
-openclaw status --deep
-
-# Resource usage
-openclaw system resources
+# View session history  
+openclaw sessions history <session-id>
 ```
 
-### Skill Management
+### Skills
+Skills are tools agents can use (like GitHub, Google Calendar, image generation):
 ```bash
 # List available skills
 openclaw skills list
 
-# Install new skills
-openclaw skills install web-scraper
-
-# Enable skills for agents
-openclaw skills enable coding-agent --agent my-first-agent
+# Enable a skill for your agent
+openclaw skills enable github --agent assistant
 ```
 
-## Next Steps: Building Multi-Agent Workflows
-
-Congratulations! You now have a working OpenClaw Gateway with your first agent. Here's how to expand your setup:
-
-### 1. Create Specialized Agents
-
-Create agents for specific domains:
-
-```bash
-# Research assistant
-mkdir -p ~/.openclaw/agents/researcher
-# Copy and modify SOUL.md for research focus
-
-# Content creator  
-mkdir -p ~/.openclaw/agents/writer
-# Copy and modify SOUL.md for writing focus
-
-# Technical support
-mkdir -p ~/.openclaw/agents/tech-support
-# Copy and modify SOUL.md for troubleshooting focus
-```
-
-### 2. Set Up Automation
-
-Use cron jobs for scheduled tasks:
-
-```bash
-# Create a daily briefing job
-openclaw cron add --schedule "0 9 * * *" --agent researcher --task "Compile today's AI news briefing"
-
-# Set up monitoring alerts
-openclaw cron add --schedule "*/30 * * * *" --agent tech-support --task "Check system health and report issues"
-```
-
-### 3. Channel Integration
-
-Connect your agents to communication platforms:
-
-```bash
-# Enable Discord integration
-openclaw channels setup discord --token your-discord-token
-
-# Create channel-specific agent routing
-openclaw channels route #general researcher
-openclaw channels route #tech-help tech-support
-```
-
-### 4. Advanced Skills
-
-Install powerful capabilities:
-
-```bash
-# Code analysis and generation
-openclaw skills install coding-agent github
-
-# Content creation pipeline
-openclaw skills install content-generator image-creator
-
-# Data processing
-openclaw skills install data-analyst spreadsheet-manager
-```
-
-## Troubleshooting Common Issues
-
-### Gateway Won't Start
-
-**Problem**: Gateway fails to start with port errors
-**Solution**: Check if port 5050 is in use:
-```bash
-lsof -i :5050
-# Kill conflicting processes or change port in config
-```
-
-### Agent Not Responding
-
-**Problem**: Agent appears offline or unresponsive
-**Solution**: Check agent workspace permissions:
-```bash
-# Ensure workspace files are readable
-chmod -R 644 ~/.openclaw/agents/my-first-agent/*.md
-chmod 755 ~/.openclaw/agents/my-first-agent/
-```
-
-### Memory Issues
-
-**Problem**: Agent doesn't remember previous conversations
-**Solution**: Verify memory directory permissions:
-```bash
-# Check memory directory exists and is writable
-ls -la ~/.openclaw/agents/my-first-agent/memory/
-chmod -R 664 ~/.openclaw/agents/my-first-agent/memory/
-```
-
-### Authentication Errors
-
-**Problem**: API calls return 401 Unauthorized
-**Solution**: Verify token configuration:
-```bash
-# Check token in config matches request headers
-grep token ~/.openclaw/openclaw.json
-```
-
-## Performance Optimization Tips
-
-### 1. Memory Management
-```bash
-# Regularly clean old session logs
-openclaw system cleanup --days 30
-
-# Optimize memory files
-openclaw agents optimize my-first-agent
-```
-
-### 2. Resource Allocation
-```json
-{
-  "agents": {
-    "maxConcurrent": 5,  // Start small, scale up
-    "timeout": 180000,   // Reduce for faster responses
-    "memoryLimit": "1GB" // Set appropriate limits
-  }
-}
-```
-
-### 3. Monitoring Setup
-```bash
-# Enable detailed logging
-openclaw config set logging.level debug
-
-# Set up health checks
-openclaw cron add --schedule "*/5 * * * *" --task "openclaw status --json > /tmp/openclaw-health.json"
-```
-
-## Security Best Practices
-
-### 1. Authentication
-- Use strong, unique tokens for gateway authentication
-- Rotate tokens regularly (monthly recommended)
-- Never commit tokens to version control
-
-### 2. Network Security
-```bash
-# Bind to localhost only for local development
-"host": "127.0.0.1"
-
-# Use reverse proxy (nginx) for production
-# Enable TLS/SSL certificates
-```
-
-### 3. Agent Isolation
-```bash
-# Create separate users for agent processes
-useradd -r openclaw-agent
-# Run agents with restricted permissions
-```
-
-## Community Resources
-
-### Documentation
-- **Official Docs**: [docs.openclaw.com](https://docs.openclaw.com)
-- **API Reference**: [api.openclaw.com](https://api.openclaw.com)
-- **Examples Repository**: [github.com/OpenClaw/examples](https://github.com/OpenClaw/examples)
-
-### Community
-- **Discord**: Join the [OpenClaw Community](https://discord.gg/openclaw)
-- **GitHub Discussions**: [github.com/OpenClaw/gateway/discussions](https://github.com/OpenClaw/gateway/discussions)
-- **Reddit**: [r/OpenClaw](https://reddit.com/r/OpenClaw)
-
-### Learning Resources
-- **YouTube Channel**: [OpenClaw Tutorials](https://youtube.com/c/OpenClaw)
-- **Blog**: [blog.openclaw.com](https://blog.openclaw.com)
-- **Newsletter**: Weekly updates and tips
-
-## Conclusion
-
-You've successfully set up your first OpenClaw Gateway instance and created a functional AI agent! This foundation opens up a world of possibilities for building sophisticated AI applications.
-
-**What you've accomplished:**
-✅ Installed and configured OpenClaw Gateway
-✅ Created your first agent with personality and memory
-✅ Had your first AI conversation with persistent context
-✅ Learned essential commands and troubleshooting
-✅ Understood the architecture for scaling to multiple agents
-
-**Your next steps:**
-- Experiment with additional skills and capabilities
-- Create specialized agents for different tasks
-- Set up automation workflows with cron jobs
-- Integrate with your favorite communication channels
-- Join the community and share your experiences
-
-The journey from a single agent to a sophisticated multi-agent system is incremental and rewarding. Each agent you create, each workflow you automate, and each integration you build adds to your AI development capabilities.
-
-**Ready for the next challenge?** Check out our follow-up tutorial: ["Building a Multi-Agent Workflow: From Planning to Production"](../building-multi-agent-workflow/) where we'll create a complete content generation pipeline with three specialized agents working together.
+### Memory
+Agents remember conversations and learn from interactions:
+- **MEMORY.md**: Long-term knowledge
+- **memory/**: Session transcripts
+- **Semantic search**: Agents can search their own history
 
 ---
 
-**About the Author**: This tutorial was created by the OpenClaw community as part of our commitment to making AI agent development accessible to all developers. For questions, corrections, or suggestions, please open an issue in our [documentation repository](https://github.com/OpenClaw/docs).
+## What's Next? Building on Your Foundation
 
-**Last Updated**: February 18, 2026
-**Tutorial Version**: 1.0
-**Compatible with**: OpenClaw Gateway v2.1+
+Congratulations! You now have a working OpenClaw setup. Here are immediate next steps:
+
+### 1. Add More Skills (5 minutes)
+```bash
+# Enable popular skills
+openclaw skills enable github weather notion
+
+# Test them
+openclaw agent --agent assistant -m "What's the weather like today?"
+```
+
+### 2. Create Specialized Agents (10 minutes)
+```bash
+# Create a coding specialist
+openclaw agents create coder --template coding
+
+# Create a content writer  
+openclaw agents create writer --template content
+```
+
+### 3. Set Up Automated Workflows (15 minutes)
+```bash
+# Create a daily standup reminder
+openclaw cron add daily-standup \
+  --schedule "0 9 * * 1-5" \
+  --agent assistant \
+  --message "Good morning! Ready for today's standup?"
+```
+
+### 4. Build Your First Multi-Agent Workflow
+- **Research Agent**: Gathers information
+- **Writer Agent**: Creates content  
+- **Reviewer Agent**: Quality checks
+- **Publisher Agent**: Distributes to channels
+
+---
+
+## Common Issues & Solutions
+
+### "Gateway won't start"
+```bash
+# Check port availability
+lsof -i :5050
+
+# Use different port
+openclaw gateway start --port 5051
+```
+
+### "Agent not responding"  
+```bash
+# Check agent status
+openclaw agents status
+
+# Restart specific agent
+openclaw agents restart assistant
+```
+
+### "Discord bot offline"
+```bash
+# Test channel connection
+openclaw channels status --probe
+
+# Reconfigure if needed
+openclaw channels configure discord
+```
+
+### "Out of memory errors"
+```bash
+# Check system resources
+openclaw status --system
+
+# Adjust memory limits
+export NODE_OPTIONS="--max-old-space-size=4096"
+```
+
+---
+
+## Production Tips
+
+### 1. Use Environment Variables
+```bash
+# Create .env file for secrets
+echo "DISCORD_TOKEN=your-token-here" > .env
+echo "OPENAI_API_KEY=your-key-here" >> .env
+```
+
+### 2. Monitor Your Gateway
+```bash
+# Health check
+openclaw health
+
+# Real-time logs
+openclaw logs -f
+
+# Performance metrics
+openclaw status --metrics
+```
+
+### 3. Backup Agent Memory
+```bash
+# Export all agent data
+openclaw backup create agents-backup.zip
+
+# Restore if needed  
+openclaw backup restore agents-backup.zip
+```
+
+---
+
+## Real-World Example: Customer Support Agent
+
+Let's build something practical - a customer support agent that:
+1. ✅ Responds to questions in Discord
+2. ✅ Creates GitHub issues for bugs
+3. ✅ Logs conversations for analysis
+4. ✅ Escalates complex issues to humans
+
+```bash
+# Create the support agent
+openclaw agents create support
+
+# Enable required skills
+openclaw skills enable github slack notion
+
+# Configure auto-escalation
+openclaw cron add escalation-check \
+  --schedule "*/30 * * * *" \
+  --agent support \
+  --message "Check for unresolved issues needing human attention"
+```
+
+**SOUL.md for Support Agent:**
+```markdown
+# Customer Support Specialist
+
+## Role
+I handle customer questions, bug reports, and feature requests with professionalism and efficiency.
+
+## Capabilities  
+- Instant responses to common questions
+- GitHub issue creation for bugs
+- Escalation paths for complex problems
+- Conversation logging and analysis
+
+## Escalation Triggers
+- Angry/frustrated customer language
+- Technical issues requiring code changes
+- Billing/account problems
+- Questions unanswered after 3 attempts
+```
+
+This agent can handle 80% of support requests automatically, with smart escalation for complex cases.
+
+---
+
+## Join the OpenClaw Community
+
+You're now part of the OpenClaw ecosystem! Connect with other builders:
+
+- 🔧 **GitHub**: [OpenClaw Core](https://github.com/openclaw/openclaw) - Contribute code
+- 💬 **Discord**: [Developer Community](https://discord.gg/openclaw) - Get help & share projects  
+- 📺 **YouTube**: [OpenClaw Tutorials](https://youtube.com/@openclaw) - Video guides
+- 🐦 **Twitter**: [@OpenClawAI](https://twitter.com/openclawai) - Updates & tips
+- 📚 **Docs**: [docs.openclaw.dev](https://docs.openclaw.dev) - Full API reference
+
+### Share Your Creation
+Built something cool? Share it with the community:
+- Tag @OpenClawAI on Twitter
+- Post in #showcase on Discord
+- Create a tutorial for others
+
+---
+
+## What's Next: Multi-Agent Workflows
+
+Ready to go deeper? In the next tutorial, we'll build a **multi-agent content creation pipeline** where agents collaborate to:
+
+1. **Research Agent** → Gathers market data and trends
+2. **Writer Agent** → Creates first draft content
+3. **Editor Agent** → Reviews and improves writing
+4. **SEO Agent** → Optimizes for search engines
+5. **Publisher Agent** → Distributes across platforms
+
+This showcases OpenClaw's real power: **agents working together** like a skilled team.
+
+### Preview: Multi-Agent Content Pipeline
+```bash
+# Coming in the next tutorial...
+openclaw workflow create content-pipeline \
+  --agents research,writer,editor,seo,publisher \
+  --trigger "New blog post request" \
+  --output "Published, optimized content"
+```
+
+---
+
+## Summary: You're Ready to Build
+
+In just 10 minutes, you've:
+
+- ✅ **Installed OpenClaw** and configured your first gateway
+- ✅ **Created an AI agent** with custom personality and skills  
+- ✅ **Connected to Discord** for real-time conversations
+- ✅ **Learned core concepts**: sessions, skills, memory, workflows
+- ✅ **Built a practical example** with automated support agent
+- ✅ **Joined the community** of OpenClaw builders
+
+**You now have the foundation to build any AI-powered workflow imaginable.**
+
+Whether you're automating customer support, building content pipelines, or creating personal AI assistants, OpenClaw gives you the tools to make AI agents work **for you** instead of the other way around.
+
+**Next Steps:**
+1. Experiment with different agent personalities
+2. Enable more skills and test capabilities  
+3. Set up your first automated workflow
+4. Follow the next tutorial: "Building a Multi-Agent Workflow"
+
+Welcome to the future of AI agent orchestration! 🚀
+
+---
+
+*Have questions? Join our Discord community or open an issue on GitHub. The OpenClaw team and community are here to help you succeed.*
+
+**Tutorial Series:**
+- ✅ **Part 1**: Getting Started with OpenClaw Gateway *(you are here)*
+- 📝 **Part 2**: Building a Multi-Agent Workflow *(coming soon)*  
+- 🔧 **Part 3**: Advanced OpenClaw: Custom Skills & Integrations *(coming soon)*
