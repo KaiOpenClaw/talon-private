@@ -81,7 +81,8 @@ export function CronDashboard() {
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {
-      logger.error('Failed to fetch cron jobs', 'CronDashboard.fetchJobs', {
+      logger.error('Failed to fetch cron jobs', {
+        component: 'CronDashboard.fetchJobs',
         endpoint: '/api/cron',
         error: (error as Error).message 
       });
@@ -102,7 +103,8 @@ export function CronDashboard() {
         fetchJobs(); // Refresh list
       }
     } catch (error) {
-      logger.error('Failed to run cron job', 'CronDashboard.runJob', {
+      logger.error('Failed to run cron job', {
+        component: 'CronDashboard.runJob',
         jobId,
         endpoint: '/api/cron/run',
         error: (error as Error).message 
@@ -122,7 +124,8 @@ export function CronDashboard() {
         fetchJobs(); // Refresh list
       }
     } catch (error) {
-      logger.error('Failed to toggle cron job', 'CronDashboard.toggleJob', {
+      logger.error('Failed to toggle cron job', {
+        component: 'CronDashboard.toggleJob',
         jobId,
         enable,
         endpoint: '/api/cron/toggle',

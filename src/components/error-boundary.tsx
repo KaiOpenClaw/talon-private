@@ -33,7 +33,10 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ errorInfo })
     
     // Log error with structured logging
-    logger.exception(error, 'ErrorBoundary', {
+    logger.error('ErrorBoundary caught error', {
+      error: error.message,
+      stack: error.stack,
+      component: 'ErrorBoundary',
       componentStack: errorInfo.componentStack
     })
     
@@ -171,7 +174,11 @@ export function InlineErrorBoundary({ children, name }: InlineErrorProps) {
 // Hook for async error handling
 export function useErrorHandler() {
   const handleError = React.useCallback((error: Error, context?: string) => {
-    logger.exception(error, context || 'Error')
+    logger.error('Error caught by useErrorHandler', {
+      error: error.message,
+      stack: error.stack,
+      context: context || 'Error'
+    })
     // Could integrate with global error state or notification system
   }, [])
 

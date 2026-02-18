@@ -66,7 +66,10 @@ export default function SemanticSearch({
           setAgents(data.agents.map((a: { id: string }) => a.id))
         }
       })
-      .catch((error) => logger.error('Failed to fetch agents', 'SemanticSearch', error))
+      .catch((error) => logger.error('Failed to fetch agents', {
+        component: 'SemanticSearch',
+        error: error.message
+      }))
   }, [])
 
   async function handleSearch() {
@@ -104,7 +107,10 @@ export default function SemanticSearch({
       const data = await res.json()
       setStats(data)
     } catch (e) {
-      logger.error('Failed to fetch stats', 'SemanticSearch', e)
+      logger.error('Failed to fetch stats', {
+        component: 'SemanticSearch',
+        error: (e as Error).message
+      })
     }
   }
 

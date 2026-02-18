@@ -16,10 +16,13 @@ export function AuthStatus() {
       router.push('/login');
       router.refresh();
     } catch (error) {
-      logger.exception(error as Error, 'AuthStatus.handleLogout');
       logger.error(
         `Logout failed in AuthStatus component: ${(error as Error).message} (endpoint: /api/auth/logout)`,
-        'AuthStatus'
+        { 
+          error: error as Error,
+          component: 'AuthStatus',
+          action: 'handleLogout'
+        }
       );
       setLoading(false);
     }
@@ -60,10 +63,13 @@ export function LogoutButton({ className = '' }: { className?: string }) {
       router.push('/login');
       router.refresh();
     } catch (error) {
-      logger.exception(error as Error, 'LogoutButton.handleLogout');
       logger.error(
         `Logout failed in LogoutButton component: ${(error as Error).message} (endpoint: /api/auth/logout)`,
-        'LogoutButton'
+        { 
+          error: error as Error,
+          component: 'LogoutButton',
+          action: 'handleLogout'
+        }
       );
       setLoading(false);
     }
