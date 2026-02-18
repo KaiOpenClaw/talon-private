@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { 
   BarChart3, 
@@ -85,7 +86,12 @@ export default function PerformanceDashboard() {
       setSlowestOps(slowestData);
       
     } catch (error) {
-      console.error('Failed to fetch performance data:', error);
+      logger.error('Failed to fetch performance data', {
+        component: 'PerformanceDashboard',
+        action: 'fetchPerformanceData',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
     } finally {
       setLoading(false);
     }

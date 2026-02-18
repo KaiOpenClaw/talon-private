@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { logger } from '@/lib/logger'
 
 interface TalonWebSocketMessage {
   type: 'sessions' | 'agents' | 'cron' | 'chat' | 'status' | 'error'
@@ -64,7 +65,11 @@ export function useWebSocket(options: WebSocketOptions = {}) {
       ws.current = new WebSocket(wsUrl)
 
       ws.current.onopen = () => {
-        console.log('WebSocket connected')
+        logger.info('WebSocket connected', {
+          component: 'useWebSocket',
+          action: 'connect',
+          url
+        })
         setState(prev => ({
           ...prev,
           connected: true,
@@ -81,12 +86,21 @@ export function useWebSocket(options: WebSocketOptions = {}) {
           setState(prev => ({ ...prev, lastMessage: message }))
           onMessage?.(message)
         } catch (error) {
-          console.error('WebSocket message parse error:', error)
+          logger.error('WebSocket message parse error', {
+            component: 'useWebSocket',
+            action: 'parseMessage',
+            error: error instanceof Error ? error.message : String(error),
+            rawData: event.data
+          })
         }
       }
 
       ws.current.onclose = () => {
-        console.log('WebSocket disconnected')
+        logger.info('WebSocket disconnected', {
+          component: 'useWebSocket',
+          action: 'disconnect',
+          url
+        })
         setState(prev => ({ ...prev, connected: false, connecting: false }))
         onDisconnect?.()
 
@@ -103,7 +117,12 @@ export function useWebSocket(options: WebSocketOptions = {}) {
       }
 
       ws.current.onerror = (error) => {
-        console.error('WebSocket error:', error)
+        logger.error('WebSocket error', {
+          component: 'useWebSocket',
+          action: 'error',
+          error: String(error),
+          url
+        })
         setState(prev => ({ 
           ...prev, 
           error: 'Connection error', 

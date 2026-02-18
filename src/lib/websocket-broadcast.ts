@@ -5,6 +5,7 @@
 
 import { WebSocket, WebSocketServer } from 'ws'
 import { Agent, Session, CronJob, Message } from '@/types'
+import { logger } from '@/lib/logger'
 
 interface WebSocketMessage {
   type: 'sessions' | 'agents' | 'cron' | 'chat' | 'status' | 'error'
@@ -23,7 +24,11 @@ export function setWebSocketServer(wss: WebSocketServer, connections: Set<WebSoc
 
 export function broadcastToClients(message: WebSocketMessage) {
   if (!globalWss || globalConnections.size === 0) {
-    console.log('No WebSocket connections to broadcast to')
+    logger.debug('No WebSocket connections to broadcast to', {
+      component: 'websocket-broadcast',
+      action: 'broadcastToClients',
+      connectionCount: globalConnections.size
+    })
     return
   }
 
@@ -34,7 +39,12 @@ export function broadcastToClients(message: WebSocketMessage) {
       try {
         ws.send(payload)
       } catch (error) {
-        console.error('Error broadcasting to client:', error)
+        logger.error('Error broadcasting to client', {
+          component: 'websocket-broadcast',
+          action: 'sendMessage',
+          error: error instanceof Error ? error.message : String(error),
+          messageType: message.type
+        })
         globalConnections.delete(ws)
       }
     } else {
@@ -42,7 +52,12 @@ export function broadcastToClients(message: WebSocketMessage) {
     }
   })
 
-  console.log(`Broadcasted ${message.type} update to ${globalConnections.size} clients`)
+  logger.info('Broadcast message sent', {
+    component: 'websocket-broadcast',
+    action: 'broadcastToClients',
+    messageType: message.type,
+    clientCount: globalConnections.size
+  })
 }
 
 // Convenience functions for specific data types
