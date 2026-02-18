@@ -6,7 +6,7 @@ import {
   Terminal, MessageSquare, Zap, Settings, FileText, 
   Activity, Clock, AlertTriangle, ChevronRight, 
   Loader2, RefreshCw, Users, Calendar, Search,
-  FolderOpen, Plus, LogOut, Menu, X
+  FolderOpen, Plus, LogOut, Menu, X, Shield
 } from 'lucide-react'
 import { LogoutButton } from '@/components/auth-status'
 import { ConnectionStatus } from '@/components/connection-status'
@@ -350,6 +350,15 @@ export default function MobileNav({
               >
                 <Search className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                 <span>Search</span>
+              </Link>
+              <Link
+                href="/security"
+                className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-surface-2 focus:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-terminal-400 focus:ring-offset-2 focus:ring-offset-surface-1 text-ink-secondary transition-colors min-h-[44px]"
+                onClick={() => setIsDrawerOpen(false)}
+                aria-label="Security - Scan skills and security guidelines"
+              >
+                <Shield className="w-5 h-5 flex-shrink-0 text-red-400" aria-hidden="true" />
+                <span>Security Center</span>
               </Link>
               <Link
                 href="/settings"

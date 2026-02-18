@@ -6,7 +6,7 @@ import {
   Terminal, MessageSquare, Zap, Settings, FileText, 
   Activity, Clock, AlertTriangle, ChevronRight, 
   Loader2, RefreshCw, Users, Calendar, Search,
-  FolderOpen, Plus, LogOut, BarChart3
+  FolderOpen, Plus, LogOut, BarChart3, Shield
 } from 'lucide-react'
 import ChatPanel from '@/components/chat-panel'
 import { LogoutButton } from '@/components/auth-status'
@@ -418,6 +418,14 @@ export default function Dashboard() {
           >
             <Search className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm">Search</span>
+          </Link>
+          <Link
+            href="/security"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 focus:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-terminal-400 focus:ring-offset-2 focus:ring-offset-surface-1 text-ink-secondary transition-colors"
+            aria-label="Security - Skills security scanner and protection guidelines"
+          >
+            <Shield className="w-4 h-4 text-red-400" aria-hidden="true" />
+            <span className="text-sm">Security</span>
           </Link>
           <Link
             href="/settings"
