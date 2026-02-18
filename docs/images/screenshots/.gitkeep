@@ -1,0 +1,12 @@
+# Screenshots Directory
+
+This directory contains high-resolution dashboard screenshots for documentation and marketing.
+
+## Required Screenshots for README.md:
+- dashboard-hero.png (Hero section)
+- dashboard.png (Features section)
+- skills.png (Skills management)
+- cron.png (Cron jobs dashboard)  
+- health.png (System health monitoring)
+
+Screenshots should be 1920x1080+ PNG format with dark theme consistency.
