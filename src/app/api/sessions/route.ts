@@ -1,10 +1,82 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { broadcastSessionUpdate } from '@/lib/websocket-broadcast'
+/**
+ * Sessions API Route - Gateway Bridge
+ * Wraps OpenClaw CLI commands as REST API endpoints
+ */
 
-// Force dynamic rendering for this API route
+import { NextRequest } from 'next/server'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
+
 export const dynamic = 'force-dynamic'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
+interface OpenClawSession {
+  key: string
+  kind: string
+  updatedAt: number
+  ageMs: number
+  sessionId: string
+  totalTokens: number | null
+  model: string
+  contextTokens: number
+  inputTokens?: number
+  outputTokens?: number
+  groupActivation?: string
+  systemSent?: boolean
+  abortedLastRun?: boolean
+}
+
+interface Session {
+  key: string
+  kind: string
+  agentId?: string
+  model?: string
+  channel?: string
+  createdAt?: string
+  lastActivity?: string
+  messageCount?: number
+  tokenUsage?: {
+    input: number
+    output: number
+    total: number
+  }
+}
+
+function transformSession(ocSession: OpenClawSession): Session {
+  // Extract agentId from key (e.g., "agent:main:discord:..." -> "main")
+  const keyParts = ocSession.key.split(':')
+  const agentId = keyParts.length >= 2 ? keyParts[1] : undefined
+  
+  // Extract channel from key if present
+  let channel: string | undefined
+  if (ocSession.key.includes(':discord:')) {
+    channel = 'discord'
+  } else if (ocSession.key.includes(':telegram:')) {
+    channel = 'telegram'
+  } else if (ocSession.key.includes(':cron:')) {
+    channel = 'cron'
+  }
+  
+  const createdAt = new Date(ocSession.updatedAt).toISOString()
+  const lastActivity = new Date(Date.now() - ocSession.ageMs).toISOString()
+  
+  return {
+    key: ocSession.key,
+    kind: ocSession.kind,
+    agentId,
+    model: ocSession.model,
+    channel,
+    createdAt,
+    lastActivity,
+    messageCount: undefined, // Not available in current data
+    tokenUsage: {
+      input: ocSession.inputTokens || 0,
+      output: ocSession.outputTokens || 0,
+      total: ocSession.totalTokens || 0
+    }
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,38 +84,60 @@ export async function GET(request: NextRequest) {
     const kinds = searchParams.get('kinds')
     const activeMinutes = searchParams.get('activeMinutes')
     const limit = searchParams.get('limit')
-    const messageLimit = searchParams.get('messageLimit')
     
-    // Build query for gateway
-    const query = new URLSearchParams()
-    if (kinds) query.set('kinds', kinds)
-    if (activeMinutes) query.set('activeMinutes', activeMinutes)
-    if (limit) query.set('limit', limit)
-    if (messageLimit) query.set('messageLimit', messageLimit)
+    // Build OpenClaw CLI command
+    let command = 'openclaw sessions --json'
+    if (limit) command += ` --limit ${limit}`
+    if (activeMinutes) command += ` --active ${activeMinutes}`
     
-    const res = await fetch(`${GATEWAY_URL}/api/sessions?${query}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Don't cache session data
-      cache: 'no-store',
+    console.log('Executing:', command)
+    
+    const { stdout, stderr } = await execAsync(command, { 
+      timeout: 10000,
+      cwd: '/root/clawd/talon-private'
     })
     
-    if (!res.ok) {
-      console.error('Gateway sessions error:', res.status, await res.text())
-      return NextResponse.json({ sessions: [] })
+    if (stderr && !stderr.includes('npm notice')) {
+      console.error('OpenClaw CLI stderr:', stderr)
     }
     
-    const data = await res.json()
+    const result = JSON.parse(stdout)
+    let sessions: OpenClawSession[] = result.sessions || []
     
-    // Broadcast session updates to connected WebSocket clients
-    if (data.sessions) {
-      broadcastSessionUpdate(data.sessions)
+    // Apply kinds filter if specified
+    if (kinds) {
+      const kindsArray = kinds.split(',')
+      sessions = sessions.filter(session => kindsArray.includes(session.kind))
     }
     
-    return NextResponse.json(data)
+    // Transform to Talon format
+    const transformedSessions = sessions.map(transformSession)
+    
+    return Response.json({
+      sessions: transformedSessions,
+      count: transformedSessions.length
+    })
+    
   } catch (error) {
     console.error('Sessions API error:', error)
-    return NextResponse.json({ sessions: [] })
+    
+    // Return mock data as fallback
+    return Response.json({
+      sessions: [
+        {
+          key: 'fallback-session',
+          kind: 'direct',
+          agentId: 'talon',
+          model: 'claude-opus-4-5',
+          channel: 'api',
+          createdAt: new Date().toISOString(),
+          lastActivity: new Date().toISOString(),
+          messageCount: 0,
+          tokenUsage: { input: 0, output: 0, total: 0 }
+        }
+      ],
+      count: 1,
+      fallback: true
+    })
   }
 }

@@ -1,95 +1,91 @@
-import { NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
+/**
+ * Agents API Route - Gateway Bridge  
+ * Wraps OpenClaw CLI commands as REST API endpoints
+ */
 
-// Force dynamic rendering for this API route
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
+
 export const dynamic = 'force-dynamic'
 
-// Talon API server (exposes agent workspaces)
-const TALON_API_URL = process.env.TALON_API_URL || 'https://srv1325349.tail657eaf.ts.net:4101'
-const TALON_API_TOKEN = process.env.TALON_API_TOKEN || ''
+interface OpenClawAgent {
+  id: string
+  name?: string
+  identityName?: string
+  identityEmoji?: string
+  workspace: string
+  agentDir: string
+  model: string
+  bindings: number
+  isDefault: boolean
+  routes: string[]
+}
+
+interface AgentConfig {
+  id: string
+  name?: string
+  description?: string
+  model?: string
+  workdir?: string
+  soul?: string
+  memory?: string
+}
+
+function transformAgent(ocAgent: OpenClawAgent): AgentConfig {
+  return {
+    id: ocAgent.id,
+    name: ocAgent.name || ocAgent.identityName,
+    description: `${ocAgent.identityEmoji || '🤖'} ${ocAgent.name || ocAgent.id}`,
+    model: ocAgent.model,
+    workdir: ocAgent.workspace,
+    soul: `${ocAgent.workspace}/SOUL.md`,
+    memory: `${ocAgent.workspace}/MEMORY.md`
+  }
+}
 
 export async function GET() {
-  const startTime = Date.now()
-  
   try {
-    logger.info('Fetching agents from Talon API', {
-      component: 'AgentsAPI',
-      action: 'fetch_start',
-      url: TALON_API_URL,
-      tokenPresent: !!TALON_API_TOKEN
+    const command = 'openclaw agents list --json'
+    
+    console.log('Executing:', command)
+    
+    const { stdout, stderr } = await execAsync(command, { 
+      timeout: 10000,
+      cwd: '/root/clawd/talon-private'
     })
     
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15s timeout
-    
-    const response = await fetch(`${TALON_API_URL}/agents`, {
-      headers: {
-        'Authorization': `Bearer ${TALON_API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-      signal: controller.signal,
-    })
-    
-    clearTimeout(timeoutId)
-    
-    const elapsed = Date.now() - startTime
-    logger.info('Talon API response received', {
-      component: 'AgentsAPI',
-      action: 'fetch_response',
-      status: response.status,
-      elapsed: elapsed
-    })
-
-    if (!response.ok) {
-      const text = await response.text()
-      logger.error('Talon API error response', {
-        component: 'AgentsAPI',
-        action: 'fetch_error',
-        status: response.status,
-        response: text,
-        url: TALON_API_URL,
-        elapsed: Date.now() - startTime
-      })
-      return NextResponse.json({ 
-        agents: [], 
-        error: `API returned ${response.status}: ${text}`,
-        debug: { url: TALON_API_URL, tokenPresent: !!TALON_API_TOKEN }
-      })
+    if (stderr && !stderr.includes('npm notice')) {
+      console.error('OpenClaw CLI stderr:', stderr)
     }
-
-    const data = await response.json()
-    logger.info('Successfully fetched agents', {
-      component: 'AgentsAPI',
-      action: 'fetch_success',
-      agentCount: data.agents?.length || 0,
-      elapsed: Date.now() - startTime
+    
+    const agents: OpenClawAgent[] = JSON.parse(stdout)
+    
+    // Transform to Talon format
+    const transformedAgents = agents.map(transformAgent)
+    
+    return Response.json({
+      agents: transformedAgents,
+      count: transformedAgents.length
     })
-    return NextResponse.json(data)
+    
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorCause = error instanceof Error && 'cause' in error ? String(error.cause) : undefined
-    const elapsed = Date.now() - startTime
+    console.error('Agents API error:', error)
     
-    logger.error('Talon API fetch failed', {
-      component: 'AgentsAPI',
-      action: 'fetch_failure',
-      error: errorMessage,
-      cause: errorCause,
-      elapsed: elapsed,
-      url: TALON_API_URL,
-      tokenPresent: !!TALON_API_TOKEN
-    })
-    
-    return NextResponse.json({ 
-      agents: [], 
-      error: errorMessage,
-      cause: errorCause,
-      debug: { 
-        url: TALON_API_URL, 
-        tokenPresent: !!TALON_API_TOKEN,
-        elapsed: Date.now() - startTime
-      }
+    // Return mock data as fallback
+    return Response.json({
+      agents: [
+        {
+          id: 'talon',
+          name: 'Talon Dashboard',
+          description: '🎯 OpenClaw Dashboard Agent',
+          model: 'claude-opus-4-5',
+          workdir: '/root/clawd/agents/talon'
+        }
+      ],
+      count: 1,
+      fallback: true
     })
   }
 }

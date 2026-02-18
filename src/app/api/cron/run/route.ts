@@ -1,74 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
+/**
+ * Cron Run API Route - Gateway Bridge
+ * Wraps OpenClaw CLI commands as REST API endpoints
+ */
 
-const GATEWAY_URL = process.env.GATEWAY_URL;
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN;
+import { NextRequest } from 'next/server'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
-  if (!GATEWAY_URL) {
-    return NextResponse.json(
-      { error: 'Gateway not configured' },
-      { status: 500 }
-    );
-  }
-
   try {
-    const { jobId } = await request.json();
+    const { jobId } = await request.json()
     
     if (!jobId) {
-      return NextResponse.json(
-        { error: 'Job ID is required' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'jobId is required' }, { status: 400 })
     }
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
     
-    if (GATEWAY_TOKEN) {
-      headers['Authorization'] = `Bearer ${GATEWAY_TOKEN}`;
-    }
-
-    const response = await fetch(`${GATEWAY_URL}/api/cron/run`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ jobId }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      logger.error('Gateway run job error', { 
-        status: response.status,
-        errorText,
-        jobId,
-        api: 'cron/run'
-      });
-      
-      // Mock success for development
-      return NextResponse.json({
-        success: true,
-        message: `Mock job run initiated for ${jobId}`,
-        mock: true
-      });
-    }
-
-    const data = await response.json();
+    const command = `openclaw cron run ${jobId}`
     
-    return NextResponse.json({
+    console.log('Executing:', command)
+    
+    const { stdout, stderr } = await execAsync(command, { 
+      timeout: 30000,
+      cwd: '/root/clawd/talon-private'
+    })
+    
+    if (stderr && !stderr.includes('npm notice')) {
+      console.error('OpenClaw CLI stderr:', stderr)
+    }
+    
+    return Response.json({
       success: true,
-      message: `Job '${jobId}' triggered successfully`,
-      data
-    });
-  } catch (error) {
-    logger.error('Failed to run cron job', { 
-      error: error instanceof Error ? error.message : String(error),
-      api: 'cron/run'
-    });
+      output: stdout,
+      jobId
+    })
     
-    return NextResponse.json({
+  } catch (error) {
+    console.error('Cron Run API error:', error)
+    
+    return Response.json({
       success: false,
-      error: `Failed to run job: ${error}`,
-    }, { status: 500 });
+      error: error instanceof Error ? error.message : 'Unknown error',
+      fallback: true
+    }, { status: 500 })
   }
 }
