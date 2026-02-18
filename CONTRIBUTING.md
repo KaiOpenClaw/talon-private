@@ -30,7 +30,7 @@ Found a bug? Help us fix it!
 - **Include environment details** (OS, Node version, deployment type)
 - **Provide screenshots** for UI issues
 
-[**Report a Bug →**](https://github.com/KaiOpenClaw/talon-private/issues/new?template=bug_report.md)
+[**Report a Bug →**](https://github.com/TerminalGravity/talon/issues/new?template=bug_report.md)
 
 ### ✨ Feature Requests
 Have an idea to make Talon better?
@@ -40,7 +40,7 @@ Have an idea to make Talon better?
 - **Explain the problem** you're solving, not just the solution
 - **Consider implementation complexity** and maintenance burden
 
-[**Request a Feature →**](https://github.com/KaiOpenClaw/talon-private/issues/new?template=feature_request.md)
+[**Request a Feature →**](https://github.com/TerminalGravity/talon/issues/new?template=feature_request.md)
 
 ### 📚 Documentation
 Help others use Talon effectively:
@@ -83,7 +83,7 @@ Ready to write some code?
 ### Local Development
 ```bash
 # Clone and setup
-git clone https://github.com/KaiOpenClaw/talon-private
+git clone https://github.com/TerminalGravity/talon
 cd talon-private
 npm install
 
@@ -372,7 +372,7 @@ Active contributors may be invited to become maintainers with:
 ## ❓ Questions?
 
 - **General questions:** [Discord #talon channel](https://discord.gg/openclaw)
-- **Bug reports:** [GitHub Issues](https://github.com/KaiOpenClaw/talon-private/issues)
+- **Bug reports:** [GitHub Issues](https://github.com/TerminalGravity/talon/issues)
 - **Security issues:** [security@openclaw.com](mailto:security@openclaw.com)
 - **Partnership inquiries:** [partnerships@openclaw.com](mailto:partnerships@openclaw.com)
 

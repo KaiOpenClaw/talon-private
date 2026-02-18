@@ -147,4 +147,4 @@ The complete transformation of OpenClaw agent management from CLI to unified das
 
 ---
 
-*For detailed technical changes, see our [GitHub Releases](https://github.com/KaiOpenClaw/talon-private/releases).*
+*For detailed technical changes, see our [GitHub Releases](https://github.com/TerminalGravity/talon/releases).*
