@@ -120,10 +120,8 @@ function MobileChatInput({
             {/* Attachment Button */}
             <TouchButton
               onClick={() => setShowAttachments(!showAttachments)}
-              variant="ghost"
-              size="small"
               className={cn(
-                "flex-shrink-0 w-10 h-10 p-0",
+                "flex-shrink-0 w-10 h-10 p-0 bg-transparent border-0",
                 showAttachments && "bg-surface-2"
               )}
               hapticFeedback="light"
@@ -197,8 +195,6 @@ function MobileChatInput({
             <TouchButton
               onClick={handleSubmit}
               disabled={!message.trim() || isLoading}
-              variant="primary"
-              size="small"
               className="flex-shrink-0 w-10 h-10 p-0"
               hapticFeedback="medium"
             >

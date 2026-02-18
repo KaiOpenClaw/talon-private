@@ -429,9 +429,8 @@ export function MobileSectionHeader({
           {typeof action === 'string' ? (
             <Link href={action}>
               <TouchButton
-                variant="ghost"
-                size="small"
                 hapticFeedback="light"
+                className="bg-transparent border-0"
               >
                 {actionText}
               </TouchButton>
@@ -439,9 +438,8 @@ export function MobileSectionHeader({
           ) : (
             <TouchButton
               onClick={onAction}
-              variant="ghost"
-              size="small"
               hapticFeedback="light"
+              className="bg-transparent border-0"
             >
               {actionText}
             </TouchButton>
@@ -468,9 +466,7 @@ export function MobileRefreshButton({
     <TouchButton
       onClick={onRefresh}
       disabled={loading}
-      variant="ghost"
-      size="small"
-      className={cn("w-10 h-10 p-0", className)}
+      className={cn("w-10 h-10 p-0 bg-transparent border-0", className)}
       hapticFeedback="medium"
     >
       <RefreshCw className={cn(

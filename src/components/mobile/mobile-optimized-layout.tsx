@@ -8,7 +8,7 @@
 import { ReactNode, useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { TouchFeedback } from './touch-feedback'
+import TouchableBase from './touch-feedback'
 
 interface MobileLayoutProps {
   children: ReactNode
@@ -195,7 +195,7 @@ export function MobileButton({
   }
 
   return (
-    <TouchFeedback disabled={!hapticFeedback || disabled || loading}>
+    <TouchableBase hapticFeedback={hapticFeedback && !disabled && !loading ? "light" : false}>
       <button
         className={cn(
           baseClasses,
@@ -209,7 +209,7 @@ export function MobileButton({
       >
         {children}
       </button>
-    </TouchFeedback>
+    </TouchableBase>
   )
 }
 
@@ -249,10 +249,12 @@ export function MobileCard({
 
   if (interactive && onClick) {
     return (
-      <TouchFeedback>
+      <TouchableBase
+        hapticFeedback="light"
+        className={cn(baseClasses, className)}
+        onClick={onClick}
+      >
         <div
-          className={cn(baseClasses, className)}
-          onClick={onClick}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
@@ -264,7 +266,7 @@ export function MobileCard({
         >
           {children}
         </div>
-      </TouchFeedback>
+      </TouchableBase>
     )
   }
 
@@ -281,15 +283,15 @@ export function MobileCard({
 export function MobileInput({
   className,
   type = 'text',
-  autoCorrect = false,
-  autoCapitalize = false,
+  autoCorrect = "off",
+  autoCapitalize = "off",
   spellCheck = false,
   ...props
 }: {
   className?: string
   type?: string
-  autoCorrect?: boolean
-  autoCapitalize?: boolean
+  autoCorrect?: string
+  autoCapitalize?: string
   spellCheck?: boolean
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   
