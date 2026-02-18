@@ -6,6 +6,7 @@ import {
   Clock, ChevronLeft, Play, Pause, Calendar,
   Loader2, CheckCircle, AlertCircle, Zap
 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface CronJob {
   id: string
@@ -71,7 +72,12 @@ export default function SchedulePage() {
         const data = await res.json()
         setJobs(data.jobs || [])
       } catch (e) {
-        console.error('Failed to load cron jobs:', e)
+        logger.error('Failed to load cron jobs', { 
+          error: e instanceof Error ? e.message : String(e),
+          component: 'SchedulePage',
+          action: 'fetchJobs',
+          showDisabled 
+        })
       } finally {
         setLoading(false)
       }
@@ -92,7 +98,12 @@ export default function SchedulePage() {
       const data = await res.json()
       setJobs(data.jobs || [])
     } catch (e) {
-      console.error('Failed to trigger job:', e)
+      logger.error('Failed to trigger cron job', { 
+        error: e instanceof Error ? e.message : String(e),
+        component: 'SchedulePage',
+        action: 'triggerJob',
+        jobId 
+      })
     } finally {
       setRunningJob(null)
     }

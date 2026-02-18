@@ -13,6 +13,7 @@ import { LogoutButton } from '@/components/auth-status'
 import { ConnectionStatus } from '@/components/connection-status'
 import { useRealtimeData } from '@/lib/useWebSocket'
 import MobileNav from '@/components/mobile-nav'
+import { logger } from '@/lib/logger'
 import { PullToRefresh } from '@/components/mobile/pull-to-refresh'
 
 interface Agent {
@@ -100,7 +101,11 @@ export default function Dashboard() {
         }
         
       } catch (e) {
-        console.error('Failed to load initial data:', e)
+        logger.error('Failed to load initial data', { 
+          error: e instanceof Error ? e.message : String(e),
+          component: 'HomePage',
+          action: 'loadInitialData'
+        })
       } finally {
         if (mounted) setLoading(false)
       }

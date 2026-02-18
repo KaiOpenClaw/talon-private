@@ -6,6 +6,7 @@ import {
   Box, ChevronLeft, Users, Calendar, Target, 
   Loader2, CheckCircle, Clock, Pause, AlertCircle
 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface Project {
   id: string
@@ -37,7 +38,11 @@ export default function ProjectsPage() {
         const data = await res.json()
         setProjects(data.projects || [])
       } catch (e) {
-        console.error('Failed to load projects:', e)
+        logger.error('Failed to load projects', { 
+          error: e instanceof Error ? e.message : String(e),
+          component: 'ProjectsPage',
+          action: 'fetchProjects'
+        })
       } finally {
         setLoading(false)
       }

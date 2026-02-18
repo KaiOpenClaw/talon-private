@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
@@ -38,14 +39,22 @@ export async function POST(request: NextRequest) {
     
     if (!res.ok) {
       const errorText = await res.text()
-      console.error('Gateway send error:', res.status, errorText)
+      logger.error('Gateway send error', { 
+        status: res.status,
+        errorText,
+        url: res.url,
+        api: 'send'
+      })
       return NextResponse.json({ error: `Gateway error: ${res.status}` }, { status: res.status })
     }
     
     const data = await res.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Send API error:', error)
+    logger.error('Send API error', { 
+      error: error instanceof Error ? error.message : String(error),
+      api: 'send'
+    })
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
   }
 }

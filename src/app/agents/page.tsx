@@ -6,6 +6,7 @@ import {
   Users, ChevronLeft, ChevronRight, Search,
   Loader2, AlertTriangle, Clock, FileText
 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface Agent {
   id: string
@@ -48,7 +49,11 @@ export default function AgentsPage() {
         const data = await res.json()
         setAgents(data.agents || [])
       } catch (e) {
-        console.error('Failed to load agents:', e)
+        logger.error('Failed to load agents', { 
+          error: e instanceof Error ? e.message : String(e),
+          component: 'AgentsPage',
+          action: 'fetchAgents'
+        })
       } finally {
         setLoading(false)
       }

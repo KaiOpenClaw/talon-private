@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 const GATEWAY_URL = process.env.GATEWAY_URL;
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN;
@@ -37,7 +38,13 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gateway reconnect channel error:', response.status, errorText);
+      logger.error('Gateway reconnect channel error', { 
+        status: response.status,
+        errorText,
+        platform,
+        name,
+        api: 'channels/reconnect'
+      });
       
       // Mock success for development
       return NextResponse.json({
@@ -55,7 +62,10 @@ export async function POST(request: NextRequest) {
       data
     });
   } catch (error) {
-    console.error('Failed to reconnect channel:', error);
+    logger.error('Failed to reconnect channel', { 
+      error: error instanceof Error ? error.message : String(error),
+      api: 'channels/reconnect'
+    });
     
     return NextResponse.json({
       success: false,
