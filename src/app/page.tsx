@@ -12,6 +12,7 @@ import ChatPanel from '@/components/chat-panel'
 import { LogoutButton } from '@/components/auth-status'
 import { ConnectionStatus } from '@/components/connection-status'
 import { useRealtimeData } from '@/lib/useWebSocket'
+import MobileNav from '@/components/mobile-nav'
 
 interface Agent {
   id: string
@@ -200,7 +201,7 @@ export default function Dashboard() {
   const activeSessionCount = sessions.filter(s => s.kind === 'main' || s.kind === 'channel').length
 
   return (
-    <div className="h-screen flex bg-surface-0">
+    <div className="h-screen flex flex-col lg:flex-row bg-surface-0">
       {/* Skip link for keyboard navigation */}
       <a 
         href="#main-content" 
@@ -208,10 +209,23 @@ export default function Dashboard() {
       >
         Skip to main content
       </a>
+
+      {/* Mobile Navigation */}
+      <MobileNav
+        agents={agents}
+        sessions={sessions}
+        blockers={blockers}
+        selectedAgent={selectedAgent}
+        onAgentSelect={setSelectedAgent}
+        loading={loading}
+        focusedAgentIndex={focusedAgentIndex}
+        onFocusedAgentChange={setFocusedAgentIndex}
+        onKeyNavigation={handleAgentKeyNavigation}
+      />
       
-      {/* Sidebar */}
+      {/* Desktop Sidebar - Hidden on mobile */}
       <aside 
-        className="w-64 flex flex-col border-r border-border-subtle bg-surface-1"
+        className="hidden lg:flex w-64 flex-col border-r border-border-subtle bg-surface-1"
         role="complementary"
         aria-label="Agent navigation and controls"
       >
@@ -426,10 +440,10 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Right Sidebar - Agent Details */}
+      {/* Right Sidebar - Agent Details - Hidden on mobile and tablet */}
       {selectedAgent && (
         <aside 
-          className="w-72 border-l border-border-subtle bg-surface-1 overflow-y-auto hidden lg:block"
+          className="w-72 border-l border-border-subtle bg-surface-1 overflow-y-auto hidden xl:block"
           role="complementary"
           aria-label={`${selectedAgent.name} details and actions`}
         >
