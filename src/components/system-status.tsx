@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { HealthDashboard } from '@/components/monitoring/health-dashboard';
 import { 
   Server, 
   Activity, 
@@ -366,6 +367,12 @@ export function SystemStatus() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detailed Health Monitoring */}
+      <div className="mt-8">
+        <h3 className="text-xl font-semibold mb-4">Detailed Health Monitoring</h3>
+        <HealthDashboard />
+      </div>
     </div>
   );
 }
