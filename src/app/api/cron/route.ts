@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -30,7 +31,12 @@ export async function GET(request: NextRequest) {
     })
     
     if (!res.ok) {
-      console.error('Gateway cron error:', res.status)
+      logger.error('Gateway cron error', { 
+        status: res.status,
+        url: res.url,
+        api: 'cron',
+        method: 'GET'
+      })
       
       // Return mock data for development
       const mockJobs = [
@@ -128,7 +134,11 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Cron API error:', error)
+    logger.error('Cron API error', { 
+      error: error instanceof Error ? error.message : String(error),
+      api: 'cron',
+      method: 'GET'
+    })
     return NextResponse.json({ jobs: [], error: 'Failed to fetch cron jobs' })
   }
 }
@@ -179,7 +189,11 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error) {
-    console.error('Cron POST error:', error)
+    logger.error('Cron POST error', { 
+      error: error instanceof Error ? error.message : String(error),
+      api: 'cron',
+      method: 'POST'
+    })
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Channel } from '@/types';
+import { logger } from '@/lib/logger';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -30,7 +31,11 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      console.error('Gateway channels error:', response.status);
+      logger.error('Gateway channels error', { 
+        status: response.status,
+        url: response.url,
+        api: 'channels'
+      });
       
       // Return mock data for development
       const mockChannels = [
@@ -156,7 +161,10 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error('Failed to fetch channels:', error);
+    logger.error('Failed to fetch channels', { 
+      error: error instanceof Error ? error.message : String(error),
+      api: 'channels'
+    });
     
     return NextResponse.json({
       channels: [],
