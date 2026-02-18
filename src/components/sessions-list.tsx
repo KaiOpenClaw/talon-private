@@ -5,6 +5,7 @@ import {
   MessageSquare, Clock, Users, ChevronRight, 
   Loader2, RefreshCw, Zap, Send
 } from 'lucide-react'
+import { logger, logApiError } from '@/lib/logger'
 
 interface Session {
   key: string
@@ -32,12 +33,24 @@ export default function SessionsList({ onSelectSession, selectedSessionKey }: Se
 
   async function fetchSessions() {
     setLoading(true)
+    const startTime = Date.now()
     try {
+      logger.debug('Fetching active sessions', { activeMinutes: 60, messageLimit: 3 })
       const res = await fetch('/api/sessions/list?activeMinutes=60&messageLimit=3')
       const data = await res.json()
       setSessions(data.sessions || [])
-    } catch (e) {
-      console.error('Failed to fetch sessions:', e)
+      
+      logger.info('Sessions loaded successfully', {
+        count: data.sessions?.length || 0,
+        duration: Date.now() - startTime
+      })
+    } catch (error) {
+      logApiError(error, { 
+        component: 'SessionsList',
+        action: 'fetchSessions',
+        endpoint: '/api/sessions/list'
+      })
+      // Could add user-facing error toast here in the future
     } finally {
       setLoading(false)
     }
@@ -170,7 +183,13 @@ function SessionItem({
     if (!quickMessage.trim()) return
     
     setSending(true)
+    const startTime = Date.now()
     try {
+      logger.debug('Sending quick message', { 
+        sessionKey: session.key,
+        messageLength: quickMessage.trim().length 
+      })
+      
       await fetch('/api/sessions/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,6 +199,17 @@ function SessionItem({
         }),
       })
       setQuickMessage('')
+      
+      logger.info('Quick message sent successfully', {
+        sessionKey: session.key,
+        duration: Date.now() - startTime
+      })
+    } catch (error) {
+      logApiError(error, {
+        component: 'SessionsList',
+        action: 'handleQuickSend',
+        sessionKey: session.key
+      })
     } finally {
       setSending(false)
     }

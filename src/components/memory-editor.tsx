@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FileText, Save, Loader2, RefreshCw, Check, X, FolderOpen } from 'lucide-react'
+import { logger, logApiError } from '@/lib/logger'
 
 interface MemoryFile {
   path: string
@@ -27,7 +28,9 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
   // Load file list
   const loadFiles = useCallback(async () => {
     setLoading(true)
+    const startTime = Date.now()
     try {
+      logger.debug('Loading memory files', { agentId })
       const res = await fetch(`/api/memory?agentId=${encodeURIComponent(agentId)}`)
       if (res.ok) {
         const data = await res.json()
@@ -37,9 +40,19 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
         if (memoryFile && !selectedFile) {
           loadFile(memoryFile)
         }
+        
+        logger.info('Memory files loaded successfully', {
+          agentId,
+          fileCount: data.files?.length || 0,
+          duration: Date.now() - startTime
+        })
       }
-    } catch (e) {
-      console.error('Failed to load files:', e)
+    } catch (error) {
+      logApiError(error, {
+        component: 'MemoryEditor',
+        action: 'loadFiles',
+        agentId
+      })
     } finally {
       setLoading(false)
     }
@@ -53,16 +66,30 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
   const loadFile = async (file: MemoryFile) => {
     setSelectedFile(file)
     setLoading(true)
+    const startTime = Date.now()
     try {
+      logger.debug('Loading file content', { agentId, filePath: file.path })
       const res = await fetch(`/api/memory?agentId=${encodeURIComponent(agentId)}&file=${encodeURIComponent(file.path)}`)
       if (res.ok) {
         const data = await res.json()
         setContent(data.content || '')
         setOriginalContent(data.content || '')
         setSaveStatus('idle')
+        
+        logger.info('File loaded successfully', {
+          agentId,
+          filePath: file.path,
+          contentLength: data.content?.length || 0,
+          duration: Date.now() - startTime
+        })
       }
-    } catch (e) {
-      console.error('Failed to load file:', e)
+    } catch (error) {
+      logApiError(error, {
+        component: 'MemoryEditor',
+        action: 'loadFile',
+        agentId,
+        filePath: file.path
+      })
     } finally {
       setLoading(false)
     }
@@ -88,11 +115,28 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
         setOriginalContent(content)
         setSaveStatus('saved')
         setTimeout(() => setSaveStatus('idle'), 2000)
+        
+        logger.info('File saved successfully', {
+          agentId,
+          filePath: selectedFile.path,
+          contentLength: content.length
+        })
       } else {
         setSaveStatus('error')
+        logger.error('Failed to save file - HTTP error', {
+          agentId,
+          filePath: selectedFile.path,
+          status: res.status,
+          statusText: res.statusText
+        })
       }
-    } catch (e) {
-      console.error('Failed to save:', e)
+    } catch (error) {
+      logApiError(error, {
+        component: 'MemoryEditor',
+        action: 'saveFile',
+        agentId,
+        filePath: selectedFile?.path
+      })
       setSaveStatus('error')
     } finally {
       setSaving(false)

@@ -1,143 +1,212 @@
 /**
- * Structured Logging System
- * Centralized logging with configurable levels and production-ready output
+ * Centralized logging utility for Talon
+ * 
+ * Provides structured logging with different levels and context information.
+ * In production, logs are formatted as JSON for monitoring systems.
+ * In development, logs are formatted for readability.
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-export type LogContext = string
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogContext = Record<string, any>;
 
 interface LogEntry {
-  level: LogLevel
-  message: string
-  context?: LogContext
-  data?: unknown
-  timestamp: string
-}
-
-interface LoggerConfig {
-  level: LogLevel
-  enableConsole: boolean
-  enableStructuredOutput: boolean
-  environment: 'development' | 'production'
+  level: LogLevel;
+  timestamp: string;
+  message: string;
+  context?: LogContext;
+  source: string;
+  requestId?: string;
 }
 
 class Logger {
-  private config: LoggerConfig
+  private isDevelopment: boolean;
+  private logLevel: LogLevel;
+  private source = 'talon-web';
 
-  constructor(config?: Partial<LoggerConfig>) {
-    this.config = {
-      level: 'info',
-      enableConsole: true,
-      enableStructuredOutput: false,
-      environment: (process.env.NODE_ENV as 'development' | 'production') || 'development',
-      ...config
+  constructor() {
+    this.isDevelopment = process.env.NODE_ENV !== 'production';
+    this.logLevel = this.getLogLevel();
+  }
+
+  private getLogLevel(): LogLevel {
+    const envLevel = process.env.LOG_LEVEL?.toLowerCase() as LogLevel;
+    if (['debug', 'info', 'warn', 'error'].includes(envLevel)) {
+      return envLevel;
     }
+    return this.isDevelopment ? 'debug' : 'info';
   }
 
   private shouldLog(level: LogLevel): boolean {
-    const levels: Record<LogLevel, number> = {
-      debug: 0,
-      info: 1,
-      warn: 2,
-      error: 3
-    }
-    return levels[level] >= levels[this.config.level]
+    const levels = ['debug', 'info', 'warn', 'error'];
+    return levels.indexOf(level) >= levels.indexOf(this.logLevel);
   }
 
-  private formatMessage(entry: LogEntry): string {
-    const { timestamp, level, context, message, data } = entry
-    
-    if (this.config.enableStructuredOutput) {
-      return JSON.stringify({
-        timestamp,
-        level: level.toUpperCase(),
-        context,
-        message,
-        data
-      })
-    }
-
-    const prefix = context ? `[${context}]` : ''
-    const dataStr = data ? ` ${JSON.stringify(data)}` : ''
-    return `${timestamp} ${level.toUpperCase()}${prefix}: ${message}${dataStr}`
-  }
-
-  private log(level: LogLevel, message: string, context?: LogContext, data?: unknown): void {
-    if (!this.shouldLog(level)) return
+  private formatLog(level: LogLevel, message: string, context?: LogContext): void {
+    if (!this.shouldLog(level)) return;
 
     const entry: LogEntry = {
       level,
+      timestamp: new Date().toISOString(),
       message,
       context,
-      data,
-      timestamp: new Date().toISOString()
-    }
+      source: this.source,
+      requestId: this.getRequestId()
+    };
 
-    const formattedMessage = this.formatMessage(entry)
-
-    if (this.config.enableConsole) {
-      // Use appropriate console method
-      switch (level) {
-        case 'debug':
-          console.debug(formattedMessage)
-          break
-        case 'info':
-          console.info(formattedMessage)
-          break
-        case 'warn':
-          console.warn(formattedMessage)
-          break
-        case 'error':
-          console.error(formattedMessage)
-          break
-      }
-    }
-
-    // In production, you could send to external logging service here
-    if (this.config.environment === 'production' && level === 'error') {
-      // TODO: Send to Sentry, DataDog, etc.
+    if (this.isDevelopment) {
+      // Development: Human-readable format
+      const levelColors = {
+        debug: '\x1b[36m', // Cyan
+        info: '\x1b[32m',  // Green
+        warn: '\x1b[33m',  // Yellow
+        error: '\x1b[31m'  // Red
+      };
+      const reset = '\x1b[0m';
+      
+      console.log(
+        `${levelColors[level]}[${level.toUpperCase()}]${reset} ${message}`,
+        context ? context : ''
+      );
+    } else {
+      // Production: JSON format for monitoring
+      console.log(JSON.stringify(entry));
     }
   }
 
-  debug(message: string, context?: LogContext, data?: unknown): void {
-    this.log('debug', message, context, data)
+  private getRequestId(): string | undefined {
+    // Try to get request ID from various sources
+    if (typeof window !== 'undefined') {
+      // Client-side: Use session ID or generate one
+      const sessionId = sessionStorage.getItem('talon-session-id');
+      if (sessionId) return sessionId;
+    }
+    
+    // Server-side: Could be passed via context in the future
+    return undefined;
   }
 
-  info(message: string, context?: LogContext, data?: unknown): void {
-    this.log('info', message, context, data)
+  /**
+   * Log debug information (only shown in development)
+   */
+  debug(message: string, context?: LogContext): void {
+    this.formatLog('debug', message, context);
   }
 
-  warn(message: string, context?: LogContext, data?: unknown): void {
-    this.log('warn', message, context, data)
+  /**
+   * Log general information
+   */
+  info(message: string, context?: LogContext): void {
+    this.formatLog('info', message, context);
   }
 
-  error(message: string, context?: LogContext, data?: unknown): void {
-    this.log('error', message, context, data)
+  /**
+   * Log warnings
+   */
+  warn(message: string, context?: LogContext): void {
+    this.formatLog('warn', message, context);
   }
 
-  // Convenience method for errors with stack traces
-  exception(error: Error, context?: LogContext, additionalData?: Record<string, unknown>): void {
-    this.error(
-      error.message,
-      context,
-      {
-        stack: error.stack,
-        name: error.name,
-        ...(additionalData || {})
-      }
-    )
+  /**
+   * Log errors with full context
+   */
+  error(message: string, context?: LogContext): void {
+    this.formatLog('error', message, context);
+  }
+
+  /**
+   * Log API calls for debugging
+   */
+  apiCall(method: string, url: string, duration?: number, status?: number): void {
+    this.info('API call', {
+      method,
+      url: url.replace(/\/api\/.*\//, '/api/[redacted]/'), // Hide sensitive parts
+      duration,
+      status,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Log user actions for analytics
+   */
+  userAction(action: string, context?: LogContext): void {
+    this.info('User action', {
+      action,
+      ...context,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Log performance metrics
+   */
+  performance(metric: string, value: number, unit = 'ms'): void {
+    this.info('Performance metric', {
+      metric,
+      value,
+      unit,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Create a child logger with additional context
+   */
+  child(context: LogContext): Logger {
+    const childLogger = new Logger();
+    const originalFormatLog = childLogger.formatLog.bind(childLogger);
+    
+    childLogger.formatLog = (level: LogLevel, message: string, additionalContext?: LogContext) => {
+      const mergedContext = { ...context, ...additionalContext };
+      originalFormatLog(level, message, mergedContext);
+    };
+    
+    return childLogger;
   }
 }
 
-// Create default logger instance
-const defaultLogger = new Logger({
-  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
-  enableStructuredOutput: process.env.NODE_ENV === 'production'
-})
+// Export singleton instance
+export const logger = new Logger();
 
-// Export both the class and a default instance
-export { Logger }
-export const logger = defaultLogger
+// Export utility functions for common patterns
+export const logApiError = (error: any, context?: LogContext) => {
+  logger.error('API Error', {
+    message: error.message,
+    stack: error.stack,
+    name: error.name,
+    ...context
+  });
+};
 
-// Convenience exports for common usage
-export const { debug, info, warn, error, exception } = defaultLogger
+export const logPerformance = (name: string, startTime: number) => {
+  const duration = Date.now() - startTime;
+  logger.performance(name, duration);
+  return duration;
+};
+
+export const withLogging = <T extends any[], R>(
+  fn: (...args: T) => R | Promise<R>,
+  name: string
+) => {
+  return async (...args: T): Promise<R> => {
+    const startTime = Date.now();
+    try {
+      logger.debug(`Starting ${name}`, { args: args.length });
+      const result = await fn(...args);
+      logPerformance(name, startTime);
+      return result;
+    } catch (error) {
+      logApiError(error, { function: name, args: args.length });
+      throw error;
+    }
+  };
+};
+
+// Development helper to track component renders
+export const useLogRender = (componentName: string, props?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    logger.debug(`${componentName} rendered`, { props });
+  }
+};
+
+export default logger;
