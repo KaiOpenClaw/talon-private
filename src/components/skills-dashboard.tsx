@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, CheckCircle, Download, Package, Search, AlertTriangle } from 'lucide-react';
+import { logApiError } from '@/lib/logger';
 
 interface Skill {
   name: string;
@@ -32,7 +33,11 @@ export function SkillsDashboard() {
       const data = await response.json();
       setSkills(data.skills || []);
     } catch (error) {
-      console.error('Failed to fetch skills:', error);
+      logApiError(error, {
+        component: 'SkillsDashboard',
+        action: 'fetchSkills',
+        endpoint: '/api/skills'
+      });
     } finally {
       setLoading(false);
     }
@@ -50,7 +55,12 @@ export function SkillsDashboard() {
         fetchSkills(); // Refresh list
       }
     } catch (error) {
-      console.error('Failed to install skill:', error);
+      logApiError(error, {
+        component: 'SkillsDashboard',
+        action: 'installSkill',
+        skillName: skillName,
+        endpoint: '/api/skills/install'
+      });
     }
   };
 

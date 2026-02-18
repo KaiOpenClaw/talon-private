@@ -20,6 +20,7 @@ import {
   Calendar,
   RefreshCw
 } from 'lucide-react';
+import { logApiError } from '@/lib/logger';
 
 interface SystemHealth {
   gateway: {
@@ -80,7 +81,11 @@ export function SystemStatus() {
       setHealth(data);
       setLastRefresh(new Date());
     } catch (error) {
-      console.error('Failed to fetch system health:', error);
+      logApiError(error, {
+        component: 'SystemStatus',
+        action: 'fetchSystemHealth',
+        endpoint: '/api/system/health'
+      });
     } finally {
       setLoading(false);
     }

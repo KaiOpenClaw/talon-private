@@ -15,6 +15,7 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
+import { logApiError } from '@/lib/logger';
 
 interface Channel {
   platform: string;
@@ -45,7 +46,11 @@ export function ChannelsDashboard() {
       const data = await response.json();
       setChannels(data.channels || []);
     } catch (error) {
-      console.error('Failed to fetch channels:', error);
+      logApiError(error, {
+        component: 'ChannelsDashboard',
+        action: 'fetchChannels',
+        endpoint: '/api/channels'
+      });
     } finally {
       setLoading(false);
     }
@@ -63,7 +68,12 @@ export function ChannelsDashboard() {
         fetchChannels(); // Refresh list
       }
     } catch (error) {
-      console.error('Failed to reconnect channel:', error);
+      logApiError(error, {
+        component: 'ChannelsDashboard',
+        action: 'reconnectChannel',
+        channelId: channelId,
+        endpoint: '/api/channels/reconnect'
+      });
     }
   };
 
@@ -79,7 +89,13 @@ export function ChannelsDashboard() {
         fetchChannels(); // Refresh list
       }
     } catch (error) {
-      console.error('Failed to toggle channel:', error);
+      logApiError(error, {
+        component: 'ChannelsDashboard',
+        action: 'toggleChannel',
+        channelId: channelId,
+        enabled: enabled,
+        endpoint: '/api/channels/toggle'
+      });
     }
   };
 

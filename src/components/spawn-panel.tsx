@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronRight, Clock, Users, X
 } from 'lucide-react'
 import { useSpawnedSessions } from '@/lib/realtime'
+import { logApiError } from '@/lib/logger'
 
 interface SpawnPanelProps {
   currentAgentId?: string
@@ -37,7 +38,11 @@ export default function SpawnPanel({ currentAgentId, onClose }: SpawnPanelProps)
         const data = await res.json()
         setAvailableAgents(data.agents || [])
       } catch (e) {
-        console.error('Failed to fetch agents:', e)
+        logApiError(e, {
+          component: 'SpawnPanel',
+          action: 'fetchAgents',
+          endpoint: '/api/agents'
+        })
       }
     }
     fetchAgents()

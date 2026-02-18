@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2, RotateCcw, Clock, ChevronDown } from 'lucide-react'
+import { logApiError } from '@/lib/logger'
 
 interface Message {
   id: string
@@ -56,7 +57,12 @@ export default function ChatPanel({
         }
       }
     } catch (e) {
-      console.error('Failed to load history:', e)
+      logApiError(e, {
+        component: 'ChatPanel',
+        action: 'loadHistory',
+        sessionLabel,
+        endpoint: '/api/sessions/history'
+      })
     } finally {
       setLoadingHistory(false)
     }
