@@ -13,6 +13,7 @@ import { LogoutButton } from '@/components/auth-status'
 import { ConnectionStatus } from '@/components/connection-status'
 import { useRealtimeData } from '@/lib/useWebSocket'
 import MobileNav from '@/components/mobile-nav'
+import { PullToRefresh } from '@/components/mobile/pull-to-refresh'
 
 interface Agent {
   id: string
@@ -199,6 +200,15 @@ export default function Dashboard() {
   }, [agents])
 
   const activeSessionCount = sessions.filter(s => s.kind === 'main' || s.kind === 'channel').length
+
+  // Pull-to-refresh handler for mobile
+  const handleRefresh = async () => {
+    // Refresh real-time data
+    await Promise.all([
+      refreshAgents(),
+      refreshSessions()
+    ])
+  }
 
   return (
     <div className="h-screen flex flex-col lg:flex-row bg-surface-0">
@@ -417,27 +427,62 @@ export default function Dashboard() {
         role="main"
         aria-label={selectedAgent ? `Chat with ${selectedAgent.name}` : "Agent selection"}
       >
-        {selectedAgent ? (
-          <ChatPanel
-            agentId={selectedAgent.id}
-            agentName={selectedAgent.name}
-            agentAvatar={selectedAgent.avatar}
-            sessionLabel={`talon-${selectedAgent.id}`}
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-ink-muted">
-              <Terminal className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
-              <h1 className="text-lg font-medium mb-2">Welcome to Talon</h1>
-              <p className="text-sm">
-                Select an agent from the sidebar to start chatting
-              </p>
-              <p className="text-xs mt-4 text-ink-tertiary">
-                💡 Use Tab to navigate, arrow keys in agent list, or Alt+1-9 for quick selection
-              </p>
+        {/* Mobile: Wrap content with pull-to-refresh */}
+        <div className="lg:hidden h-full">
+          <PullToRefresh
+            onRefresh={handleRefresh}
+            className="h-full"
+            threshold={80}
+            resistance={0.6}
+          >
+            {selectedAgent ? (
+              <ChatPanel
+                agentId={selectedAgent.id}
+                agentName={selectedAgent.name}
+                agentAvatar={selectedAgent.avatar}
+                sessionLabel={`talon-${selectedAgent.id}`}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center min-h-full">
+                <div className="text-center text-ink-muted p-8">
+                  <Terminal className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
+                  <h1 className="text-lg font-medium mb-2">Welcome to Talon</h1>
+                  <p className="text-sm mb-4">
+                    Select an agent from the menu to start chatting
+                  </p>
+                  <p className="text-xs text-ink-tertiary">
+                    💡 Pull down to refresh • Swipe from left edge to open menu
+                  </p>
+                </div>
+              </div>
+            )}
+          </PullToRefresh>
+        </div>
+
+        {/* Desktop: Standard content without pull-to-refresh */}
+        <div className="hidden lg:flex lg:flex-col lg:h-full">
+          {selectedAgent ? (
+            <ChatPanel
+              agentId={selectedAgent.id}
+              agentName={selectedAgent.name}
+              agentAvatar={selectedAgent.avatar}
+              sessionLabel={`talon-${selectedAgent.id}`}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center text-ink-muted">
+                <Terminal className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
+                <h1 className="text-lg font-medium mb-2">Welcome to Talon</h1>
+                <p className="text-sm">
+                  Select an agent from the sidebar to start chatting
+                </p>
+                <p className="text-xs mt-4 text-ink-tertiary">
+                  💡 Use Tab to navigate, arrow keys in agent list, or Alt+1-9 for quick selection
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* Right Sidebar - Agent Details - Hidden on mobile and tablet */}

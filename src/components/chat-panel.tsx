@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2, RotateCcw, Clock, ChevronDown } from 'lucide-react'
 import { logApiError } from '@/lib/logger'
+import { TouchButton } from '@/components/mobile/touch-feedback'
+import { MobileInlineLoading } from '@/components/mobile/mobile-loading'
 
 interface Message {
   id: string
@@ -256,21 +258,24 @@ export default function ChatPanel({
             autoComplete="off"
             autoCorrect="on"
           />
-          <button
+          <TouchButton
             onClick={sendMessage}
             disabled={!input.trim() || sending}
-            className="flex items-center justify-center gap-2 px-4 sm:px-5 py-3 bg-terminal-600 hover:bg-terminal-500 active:bg-terminal-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors min-w-[44px] min-h-[44px]"
+            hapticFeedback="medium"
+            className="bg-terminal-600 hover:bg-terminal-500 active:bg-terminal-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-5 py-3 gap-2"
             aria-label={sending ? 'Sending message' : 'Send message'}
           >
             {sending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <MobileInlineLoading loading={true} size="sm">
+                <span className="hidden sm:inline">Sending</span>
+              </MobileInlineLoading>
             ) : (
               <>
                 <Send className="w-4 h-4" />
                 <span className="hidden sm:inline">Send</span>
               </>
             )}
-          </button>
+          </TouchButton>
         </div>
       </div>
     </div>
