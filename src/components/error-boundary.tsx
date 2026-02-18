@@ -2,6 +2,7 @@
 
 import React, { Component, ReactNode } from 'react'
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface Props {
   children: ReactNode
@@ -31,9 +32,10 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ errorInfo })
     
-    // Log to console for debugging
-    console.error('ErrorBoundary caught error:', error)
-    console.error('Component stack:', errorInfo.componentStack)
+    // Log error with structured logging
+    logger.exception(error, 'ErrorBoundary', {
+      componentStack: errorInfo.componentStack
+    })
     
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo)
@@ -169,7 +171,7 @@ export function InlineErrorBoundary({ children, name }: InlineErrorProps) {
 // Hook for async error handling
 export function useErrorHandler() {
   const handleError = React.useCallback((error: Error, context?: string) => {
-    console.error(`[${context || 'Error'}]:`, error)
+    logger.exception(error, context || 'Error')
     // Could integrate with global error state or notification system
   }, [])
 

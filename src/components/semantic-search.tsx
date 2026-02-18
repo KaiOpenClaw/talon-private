@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { 
   Search, Loader2, FileText, FolderOpen, 
   Brain, Users, ChevronRight, X,
@@ -65,7 +66,7 @@ export default function SemanticSearch({
           setAgents(data.agents.map((a: { id: string }) => a.id))
         }
       })
-      .catch(console.error)
+      .catch((error) => logger.error('Failed to fetch agents', 'SemanticSearch', error))
   }, [])
 
   async function handleSearch() {
@@ -103,7 +104,7 @@ export default function SemanticSearch({
       const data = await res.json()
       setStats(data)
     } catch (e) {
-      console.error('Failed to fetch stats:', e)
+      logger.error('Failed to fetch stats', 'SemanticSearch', e)
     }
   }
 

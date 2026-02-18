@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
-import { logger, logError } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -81,11 +81,10 @@ export function CronDashboard() {
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {
-      logError(error as Error, 'CronDashboard.fetchJobs');
-      logger.error('Failed to fetch cron jobs', { 
+      logger.error('Failed to fetch cron jobs', 'CronDashboard.fetchJobs', {
         endpoint: '/api/cron',
         error: (error as Error).message 
-      }, 'CronDashboard');
+      });
     } finally {
       setLoading(false);
     }
@@ -103,12 +102,11 @@ export function CronDashboard() {
         fetchJobs(); // Refresh list
       }
     } catch (error) {
-      logError(error as Error, 'CronDashboard.runJob');
-      logger.error('Failed to run cron job', { 
+      logger.error('Failed to run cron job', 'CronDashboard.runJob', {
         jobId,
         endpoint: '/api/cron/run',
         error: (error as Error).message 
-      }, 'CronDashboard');
+      });
     }
   };
 
@@ -124,13 +122,12 @@ export function CronDashboard() {
         fetchJobs(); // Refresh list
       }
     } catch (error) {
-      logError(error as Error, 'CronDashboard.toggleJob');
-      logger.error('Failed to toggle cron job', { 
+      logger.error('Failed to toggle cron job', 'CronDashboard.toggleJob', {
         jobId,
         enable,
         endpoint: '/api/cron/toggle',
         error: (error as Error).message 
-      }, 'CronDashboard');
+      });
     }
   };
 
