@@ -9,6 +9,8 @@ interface RawSkill {
   disabled?: boolean;
   version?: string;
   dependencies?: string[];
+  source?: string;
+  missingDeps?: string[];
 }
 
 // Force dynamic rendering for this API route
@@ -41,12 +43,12 @@ export async function GET() {
     
     // Transform the OpenClaw skills response to our format
     const skills = data.skills?.map((skill: RawSkill) => ({
+      id: skill.name,
       name: skill.name,
       description: skill.description || 'No description available',
-      status: skill.ready ? 'ready' : (skill.disabled ? 'disabled' : 'missing-deps'),
-      source: skill.source || 'unknown',
-      dependencies: skill.dependencies || [],
-      missingDeps: skill.missingDeps || []
+      status: skill.ready ? 'ready' : (skill.disabled ? 'error' : 'unavailable'),
+      version: skill.version,
+      dependencies: skill.dependencies || []
     })) || [];
 
     return NextResponse.json({
@@ -54,8 +56,8 @@ export async function GET() {
       summary: {
         total: skills.length,
         ready: skills.filter((s: Skill) => s.status === 'ready').length,
-        missingDeps: skills.filter((s: Skill) => s.status === 'unavailable').length, // 'unavailable' matches Skill interface
-        disabled: skills.filter((s: Skill) => s.status === 'error').length
+        unavailable: skills.filter((s: Skill) => s.status === 'unavailable').length,
+        error: skills.filter((s: Skill) => s.status === 'error').length
       }
     });
   } catch (error) {
@@ -64,41 +66,46 @@ export async function GET() {
     // Return mock data for development/testing
     const mockSkills = [
       {
+        id: 'coding-agent',
         name: 'coding-agent',
         description: 'Run Codex CLI, Claude Code, OpenCode via background process',
-        status: 'ready',
-        source: 'npm',
+        status: 'ready' as const,
         dependencies: ['node', 'npm']
       },
       {
+        id: 'github',
         name: 'github',
         description: 'gh CLI for issues, PRs, CI runs',
-        status: 'ready',
-        source: 'npm',
+        status: 'ready' as const,
         dependencies: ['gh']
       },
       {
+        id: 'gog',
         name: 'gog',
         description: 'Google Workspace (Gmail, Calendar, Drive, Contacts, Sheets, Docs)',
-        status: 'ready',
-        source: 'npm',
+        status: 'ready' as const,
         dependencies: ['google-auth']
       },
       {
+        id: 'docker',
         name: 'docker',
         description: 'Container management and deployment',
-        status: 'missing-deps',
-        source: 'npm',
-        dependencies: ['docker'],
-        missingDeps: ['docker']
+        status: 'unavailable' as const,
+        dependencies: ['docker']
       },
       {
+        id: 'kubernetes',
         name: 'kubernetes',
         description: 'Kubernetes cluster management',
-        status: 'missing-deps',
-        source: 'npm',
-        dependencies: ['kubectl', 'helm'],
-        missingDeps: ['kubectl', 'helm']
+        status: 'unavailable' as const,
+        dependencies: ['kubectl', 'helm']
+      },
+      {
+        id: 'broken-skill',
+        name: 'broken-skill',
+        description: 'A skill with configuration errors',
+        status: 'error' as const,
+        dependencies: []
       }
     ];
 
@@ -107,8 +114,8 @@ export async function GET() {
       summary: {
         total: mockSkills.length,
         ready: mockSkills.filter(s => s.status === 'ready').length,
-        missingDeps: mockSkills.filter(s => s.status === 'missing-deps').length,
-        disabled: mockSkills.filter(s => s.status === 'disabled').length
+        unavailable: mockSkills.filter(s => s.status === 'unavailable').length,
+        error: mockSkills.filter(s => s.status === 'error').length
       },
       mock: true
     });

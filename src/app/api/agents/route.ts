@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -11,8 +12,12 @@ export async function GET() {
   const startTime = Date.now()
   
   try {
-    console.log('[agents] Fetching from:', TALON_API_URL)
-    console.log('[agents] Token present:', !!TALON_API_TOKEN)
+    logger.info('Fetching agents from Talon API', {
+      component: 'AgentsAPI',
+      action: 'fetch_start',
+      url: TALON_API_URL,
+      tokenPresent: !!TALON_API_TOKEN
+    })
     
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15000) // 15s timeout
@@ -28,12 +33,24 @@ export async function GET() {
     
     clearTimeout(timeoutId)
     
-    console.log('[agents] Response status:', response.status)
-    console.log('[agents] Fetch took:', Date.now() - startTime, 'ms')
+    const elapsed = Date.now() - startTime
+    logger.info('Talon API response received', {
+      component: 'AgentsAPI',
+      action: 'fetch_response',
+      status: response.status,
+      elapsed: elapsed
+    })
 
     if (!response.ok) {
       const text = await response.text()
-      console.error('[agents] Error response:', text)
+      logger.error('Talon API error response', {
+        component: 'AgentsAPI',
+        action: 'fetch_error',
+        status: response.status,
+        response: text,
+        url: TALON_API_URL,
+        elapsed: Date.now() - startTime
+      })
       return NextResponse.json({ 
         agents: [], 
         error: `API returned ${response.status}: ${text}`,
@@ -42,15 +59,27 @@ export async function GET() {
     }
 
     const data = await response.json()
-    console.log('[agents] Got', data.agents?.length || 0, 'agents')
+    logger.info('Successfully fetched agents', {
+      component: 'AgentsAPI',
+      action: 'fetch_success',
+      agentCount: data.agents?.length || 0,
+      elapsed: Date.now() - startTime
+    })
     return NextResponse.json(data)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     const errorCause = error instanceof Error && 'cause' in error ? String(error.cause) : undefined
+    const elapsed = Date.now() - startTime
     
-    console.error('[agents] Fetch error:', errorMessage)
-    console.error('[agents] Error cause:', errorCause)
-    console.error('[agents] Took:', Date.now() - startTime, 'ms')
+    logger.error('Talon API fetch failed', {
+      component: 'AgentsAPI',
+      action: 'fetch_failure',
+      error: errorMessage,
+      cause: errorCause,
+      elapsed: elapsed,
+      url: TALON_API_URL,
+      tokenPresent: !!TALON_API_TOKEN
+    })
     
     return NextResponse.json({ 
       agents: [], 

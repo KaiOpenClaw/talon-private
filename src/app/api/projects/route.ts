@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
+import { logger } from '@/lib/logger'
 
 const PROJECTS_PATH = process.env.PROJECTS_PATH || '/root/clawd/PROJECTS.md'
 
@@ -114,7 +115,12 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Projects API error:', error)
+    logger.error('Failed to load projects', {
+      component: 'ProjectsAPI',
+      action: 'load_projects',
+      error: error instanceof Error ? error.message : String(error),
+      path: PROJECTS_PATH
+    })
     return NextResponse.json({ projects: [], error: 'Failed to load projects' }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 
@@ -45,14 +46,25 @@ export async function POST(request: NextRequest) {
     
     if (!res.ok) {
       const error = await res.text()
-      console.error('Gateway spawn error:', res.status, error)
+      logger.error('Gateway spawn request failed', {
+        component: 'SpawnAPI',
+        action: 'spawn_session',
+        status: res.status,
+        error: error,
+        task: task,
+        agentId: agentId
+      })
       return NextResponse.json({ error: `Spawn failed: ${res.status}` }, { status: res.status })
     }
     
     const data = await res.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Spawn API error:', error)
+    logger.error('Spawn API request failed', {
+      component: 'SpawnAPI',
+      action: 'spawn_session_error',
+      error: error instanceof Error ? error.message : String(error)
+    })
     return NextResponse.json({ error: 'Failed to spawn agent' }, { status: 500 })
   }
 }
@@ -74,7 +86,11 @@ export async function GET() {
     const data = await res.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Agents list error:', error)
+    logger.error('Failed to fetch agents list', {
+      component: 'SpawnAPI',
+      action: 'list_agents',
+      error: error instanceof Error ? error.message : String(error)
+    })
     return NextResponse.json({ agents: [] })
   }
 }
