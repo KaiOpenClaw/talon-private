@@ -2,52 +2,78 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, Loader2 } from 'lucide-react';
+import { LogOut, User, Loader2, AlertCircle } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { useSafeApiCall } from '@/hooks/useSafeApiCall';
+import { InlineErrorBoundary } from '@/components/error-boundary';
 
 export function AuthStatus() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const { safeApiCall } = useSafeApiCall();
   
   async function handleLogout() {
     setLoading(true);
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+    setLogoutError(null);
+    
+    const result = await safeApiCall(
+      async () => {
+        const response = await fetch('/api/auth/logout', { method: 'POST' });
+        if (!response.ok) {
+          throw new Error(`Logout failed: HTTP ${response.status}`);
+        }
+        return response;
+      },
+      {
+        errorMessage: 'Failed to logout',
+        onError: (error) => {
+          setLogoutError('Logout failed. Please try again.');
+          logger.error('Logout failed in AuthStatus', {
+            component: 'AuthStatus',
+            action: 'handleLogout',
+            error: error.message
+          });
+        }
+      }
+    );
+
+    if (result.success) {
       router.push('/login');
       router.refresh();
-    } catch (error) {
-      logger.error(
-        `Logout failed in AuthStatus component: ${(error as Error).message} (endpoint: /api/auth/logout)`,
-        { 
-          error: error as Error,
-          component: 'AuthStatus',
-          action: 'handleLogout'
-        }
-      );
-      setLoading(false);
     }
+    
+    setLoading(false);
   }
   
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg">
-        <User className="w-4 h-4 text-zinc-400" />
-        <span className="text-sm text-zinc-300">Authenticated</span>
+    <InlineErrorBoundary name="AuthStatus">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg">
+          <User className="w-4 h-4 text-zinc-400" />
+          <span className="text-sm text-zinc-300">Authenticated</span>
+        </div>
+        <button
+          onClick={handleLogout}
+          disabled={loading}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+            logoutError 
+              ? 'bg-red-800/50 text-red-300 border border-red-500/30' 
+              : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white'
+          }`}
+          title={logoutError || "Sign out"}
+        >
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : logoutError ? (
+            <AlertCircle className="w-4 h-4" />
+          ) : (
+            <LogOut className="w-4 h-4" />
+          )}
+          <span className="text-sm">{logoutError ? 'Retry' : 'Logout'}</span>
+        </button>
       </div>
-      <button
-        onClick={handleLogout}
-        disabled={loading}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50"
-        title="Sign out"
-      >
-        {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <LogOut className="w-4 h-4" />
-        )}
-        <span className="text-sm">Logout</span>
-      </button>
-    </div>
+    </InlineErrorBoundary>
   );
 }
 
