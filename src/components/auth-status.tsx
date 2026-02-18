@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, User, Loader2 } from 'lucide-react';
+import { logger, logError } from '@/lib/logger';
 
 export function AuthStatus() {
   const router = useRouter();
@@ -15,7 +16,11 @@ export function AuthStatus() {
       router.push('/login');
       router.refresh();
     } catch (error) {
-      console.error('Logout failed:', error);
+      logError(error as Error, 'AuthStatus.handleLogout');
+      logger.error('Logout failed in AuthStatus component', { 
+        endpoint: '/api/auth/logout',
+        error: (error as Error).message 
+      }, 'AuthStatus');
       setLoading(false);
     }
   }
@@ -55,7 +60,11 @@ export function LogoutButton({ className = '' }: { className?: string }) {
       router.push('/login');
       router.refresh();
     } catch (error) {
-      console.error('Logout failed:', error);
+      logError(error as Error, 'LogoutButton.handleLogout');
+      logger.error('Logout failed in LogoutButton component', { 
+        endpoint: '/api/auth/logout',
+        error: (error as Error).message 
+      }, 'LogoutButton');
       setLoading(false);
     }
   }
