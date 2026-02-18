@@ -154,10 +154,10 @@ export async function GET() {
       channels,
       summary: {
         total: channels.length,
-        online: channels.filter((c: any) => c.status === 'online').length,
-        offline: channels.filter((c: any) => c.status === 'offline').length,
-        error: channels.filter((c: any) => c.status === 'error').length,
-        platforms: [...new Set(channels.map((c: any) => c.platform))]
+        online: channels.filter((c: Channel) => c.status === 'connected').length,
+        offline: channels.filter((c: Channel) => c.status === 'disconnected').length,
+        error: channels.filter((c: Channel) => c.status === 'error').length,
+        platforms: [...new Set(channels.map((c: Channel) => c.type))]
       }
     });
   } catch (error) {

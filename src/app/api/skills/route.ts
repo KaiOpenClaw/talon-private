@@ -1,4 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Skill } from '@/types';
+
+// Raw skill format from OpenClaw gateway
+interface RawSkill {
+  name: string;
+  description?: string;
+  ready?: boolean;
+  disabled?: boolean;
+  version?: string;
+  dependencies?: string[];
+}
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -29,7 +40,7 @@ export async function GET() {
     const data = await response.json();
     
     // Transform the OpenClaw skills response to our format
-    const skills = data.skills?.map((skill: any) => ({
+    const skills = data.skills?.map((skill: RawSkill) => ({
       name: skill.name,
       description: skill.description || 'No description available',
       status: skill.ready ? 'ready' : (skill.disabled ? 'disabled' : 'missing-deps'),
@@ -42,9 +53,9 @@ export async function GET() {
       skills,
       summary: {
         total: skills.length,
-        ready: skills.filter((s: any) => s.status === 'ready').length,
-        missingDeps: skills.filter((s: any) => s.status === 'missing-deps').length,
-        disabled: skills.filter((s: any) => s.status === 'disabled').length
+        ready: skills.filter((s: Skill) => s.status === 'ready').length,
+        missingDeps: skills.filter((s: Skill) => s.status === 'unavailable').length, // 'unavailable' matches Skill interface
+        disabled: skills.filter((s: Skill) => s.status === 'error').length
       }
     });
   } catch (error) {

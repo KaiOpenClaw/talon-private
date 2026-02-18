@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Agent, CronJob, Channel, Session } from '@/types';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -75,24 +76,24 @@ export async function GET() {
 
     // Calculate derived metrics
     const agentList = agents.agents || [];
-    const activeAgents = agentList.filter((a: any) => a.status === 'active' || a.lastActivity).length;
+    const activeAgents = agentList.filter((a: Agent) => a.status === 'active' || a.lastActivity).length;
     const idleAgents = agentList.length - activeAgents;
 
     const cronJobs = cron.jobs || [];
-    const runningJobs = cronJobs.filter((j: any) => j.status === 'running').length;
-    const errorJobs = cronJobs.filter((j: any) => j.status === 'error').length;
+    const runningJobs = cronJobs.filter((j: CronJob) => j.status === 'running').length;
+    const errorJobs = cronJobs.filter((j: CronJob) => j.status === 'error').length;
     const nextJob = cronJobs
-      .filter((j: any) => j.nextRun && j.nextRun !== '-')
-      .sort((a: any, b: any) => new Date(a.nextRun).getTime() - new Date(b.nextRun).getTime())[0]?.nextRun;
+      .filter((j: CronJob) => j.nextRun && j.nextRun !== '-')
+      .sort((a: CronJob, b: CronJob) => new Date(a.nextRun || 0).getTime() - new Date(b.nextRun || 0).getTime())[0]?.nextRun;
 
     const channelList = channels.channels || [];
-    const onlineChannels = channelList.filter((c: any) => c.status === 'online').length;
-    const offlineChannels = channelList.filter((c: any) => c.status === 'offline').length;
-    const errorChannels = channelList.filter((c: any) => c.status === 'error').length;
+    const onlineChannels = channelList.filter((c: Channel) => c.status === 'connected').length;
+    const offlineChannels = channelList.filter((c: Channel) => c.status === 'disconnected').length;
+    const errorChannels = channelList.filter((c: Channel) => c.status === 'error').length;
 
     const sessionsList = sessions.sessions || [];
-    const activeSessions = sessionsList.filter((s: any) => s.active || s.lastActivity).length;
-    const recentSessions = sessionsList.filter((s: any) => {
+    const activeSessions = sessionsList.filter((s: Session) => s.isActive || s.lastActivity).length;
+    const recentSessions = sessionsList.filter((s: Session) => {
       if (!s.lastActivity) return false;
       const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
       return new Date(s.lastActivity) > hourAgo;

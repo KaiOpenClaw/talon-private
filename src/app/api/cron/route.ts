@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
+import { CronJob } from '@/types'
+
+// Raw job format from OpenClaw gateway
+interface RawCronJob {
+  id: string
+  name: string
+  schedule: any
+  nextRun?: string
+  next?: string
+  lastRun?: string
+  last?: string
+  status?: string
+  target?: string
+  agent?: string
+  errorMessage?: string
+}
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -110,7 +126,7 @@ export async function GET(request: NextRequest) {
     const data = await res.json()
     
     // Transform OpenClaw format to our dashboard format
-    const jobs = data.jobs?.map((job: any) => ({
+    const jobs = data.jobs?.map((job: RawCronJob) => ({
       id: job.id,
       name: job.name,
       schedule: job.schedule,
@@ -126,11 +142,11 @@ export async function GET(request: NextRequest) {
       jobs,
       summary: {
         total: jobs.length,
-        ok: jobs.filter((j: any) => j.status === 'ok').length,
-        error: jobs.filter((j: any) => j.status === 'error').length,
-        idle: jobs.filter((j: any) => j.status === 'idle').length,
-        running: jobs.filter((j: any) => j.status === 'running').length,
-        disabled: jobs.filter((j: any) => j.status === 'disabled').length
+        ok: jobs.filter((j: CronJob) => j.status === 'idle').length, // 'ok' maps to 'idle' status
+        error: jobs.filter((j: CronJob) => j.status === 'error').length,
+        idle: jobs.filter((j: CronJob) => j.status === 'idle').length,
+        running: jobs.filter((j: CronJob) => j.status === 'running').length,
+        disabled: jobs.filter((j: CronJob) => !j.enabled).length
       }
     })
   } catch (error) {

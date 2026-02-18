@@ -56,10 +56,12 @@ function TouchableBase({
   ...props
 }: TouchableBaseProps & {
   as?: 'button' | 'div' | 'a'
-  [key: string]: any
+  onTouchStart?: React.TouchEventHandler<any>
+  onTouchEnd?: React.TouchEventHandler<any>
+  [key: string]: unknown
 }) {
   const { onTouchStart, onTouchEnd, ...restProps } = props
-  const handleTouchStart = (event: React.TouchEvent<any>) => {
+  const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
     // Trigger haptic feedback
     if (hapticFeedback) {
       const feedbackType = typeof hapticFeedback === 'string' ? hapticFeedback : 'light'
@@ -73,7 +75,7 @@ function TouchableBase({
     onTouchStart?.(event)
   }
 
-  const handleTouchEnd = (event: React.TouchEvent<any>) => {
+  const handleTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
     // Remove active state class
     const target = event.currentTarget
     target.classList.remove('touch-active')
@@ -289,7 +291,7 @@ export function SwipeCard({
   onSwipeLeft?: () => void
   onSwipeRight?: () => void
   className?: string
-  [key: string]: any
+  [key: string]: unknown
 }) {
   let startX = 0
   let startY = 0
@@ -357,7 +359,7 @@ export function LongPressButton({
   longPressDelay?: number
   className?: string
   showProgress?: boolean
-  [key: string]: any
+  [key: string]: unknown
 }) {
   let pressTimer: NodeJS.Timeout | null = null
   let progressTimer: NodeJS.Timeout | null = null

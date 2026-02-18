@@ -169,11 +169,11 @@ class Logger {
 export const logger = new Logger();
 
 // Export utility functions for common patterns
-export const logApiError = (error: any, context?: LogContext) => {
+export const logApiError = (error: Error | unknown, context?: LogContext) => {
   logger.error('API Error', {
-    message: error.message,
-    stack: error.stack,
-    name: error.name,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    name: error instanceof Error ? error.name : 'UnknownError',
     ...context
   });
 };
@@ -203,7 +203,7 @@ export const withLogging = <T extends any[], R>(
 };
 
 // Development helper to track component renders
-export const useLogRender = (componentName: string, props?: any) => {
+export const useLogRender = (componentName: string, props?: Record<string, unknown>) => {
   if (process.env.NODE_ENV === 'development') {
     logger.debug(`${componentName} rendered`, { props });
   }
