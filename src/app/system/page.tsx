@@ -1,7 +1,14 @@
+'use client'
+
 import { SystemStatus } from '@/components/system-status';
 import { MobilePage } from '@/components/mobile/pull-to-refresh';
 
 export default function SystemPage() {
+  const handleRefresh = async () => {
+    // SystemStatus component handles its own refresh via fetchSystemHealth
+    window.location.reload();
+  }
+
   return (
     <div className="h-screen bg-surface-0">
       {/* Mobile-optimized layout with pull-to-refresh */}
@@ -9,10 +16,7 @@ export default function SystemPage() {
         <MobilePage
           title="System Status"
           subtitle="Monitor OpenClaw gateway health"
-          onRefresh={async () => {
-            // SystemStatus component handles its own refresh via fetchSystemHealth
-            window.location.reload();
-          }}
+          onRefresh={handleRefresh}
         >
           <SystemStatus />
         </MobilePage>

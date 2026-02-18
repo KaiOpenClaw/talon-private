@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FileText, Save, Loader2, RefreshCw, Check, X, FolderOpen } from 'lucide-react'
 import { logger, logApiError } from '@/lib/logger'
+import { useSafeApiCall, useComponentError } from '@/hooks/useSafeApiCall'
+import { ErrorState } from '@/components/error-state'
+import { InlineErrorBoundary } from '@/components/error-boundary'
 
 interface MemoryFile {
   path: string
@@ -24,39 +27,51 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
+  const [error, setError] = useState<Error | null>(null)
+
+  // Error handling hooks
+  const { safeApiCallWithRetry, safeApiCall } = useSafeApiCall()
+  const { handleError } = useComponentError('MemoryEditor')
 
   // Load file list
   const loadFiles = useCallback(async () => {
     setLoading(true)
+    setError(null)
     const startTime = Date.now()
-    try {
-      logger.debug('Loading memory files', { agentId })
-      const res = await fetch(`/api/memory?agentId=${encodeURIComponent(agentId)}`)
-      if (res.ok) {
-        const data = await res.json()
-        setFiles(data.files || [])
-        // Auto-select MEMORY.md if exists
-        const memoryFile = data.files?.find((f: MemoryFile) => f.name === 'MEMORY.md')
-        if (memoryFile && !selectedFile) {
-          loadFile(memoryFile)
+
+    const result = await safeApiCallWithRetry(
+      async () => {
+        logger.debug('Loading memory files', { agentId })
+        const res = await fetch(`/api/memory?agentId=${encodeURIComponent(agentId)}`)
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: Failed to load memory files`)
         }
-        
-        logger.info('Memory files loaded successfully', {
-          agentId,
-          fileCount: data.files?.length || 0,
-          duration: Date.now() - startTime
-        })
+        return res.json()
+      },
+      `Failed to load memory files for agent "${agentId}"`
+    )
+
+    if (result.success && result.data) {
+      setFiles(result.data.files || [])
+      // Auto-select MEMORY.md if exists
+      const memoryFile = result.data.files?.find((f: MemoryFile) => f.name === 'MEMORY.md')
+      if (memoryFile && !selectedFile) {
+        loadFile(memoryFile)
       }
-    } catch (error) {
-      logApiError(error, {
-        component: 'MemoryEditor',
-        action: 'loadFiles',
-        agentId
+      
+      logger.info('Memory files loaded successfully', {
+        agentId,
+        fileCount: result.data.files?.length || 0,
+        duration: Date.now() - startTime
       })
-    } finally {
-      setLoading(false)
+      setError(null)
+    } else {
+      setError(result.error)
+      setFiles([])
     }
-  }, [agentId])
+    
+    setLoading(false)
+  }, [agentId, safeApiCallWithRetry, selectedFile])
 
   useEffect(() => {
     loadFiles()

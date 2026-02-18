@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
+import { useSafeApiCall, useComponentError } from '@/hooks/useSafeApiCall';
 import { logger } from '@/lib/logger';
+import { ErrorState, NetworkErrorState } from '@/components/error-state';
+import { InlineErrorBoundary } from '@/components/error-boundary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,9 +41,14 @@ interface CronJob {
 export function CronDashboard() {
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [frequencyFilter, setFrequencyFilter] = useState('all');
+
+  // Error handling hooks
+  const { safeApiCallWithRetry, safeApiCall } = useSafeApiCall();
+  const { handleError } = useComponentError('CronDashboard');
 
   // Filter jobs for display
   const filteredJobs = jobs.filter(job => {
@@ -75,42 +83,68 @@ export function CronDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchJobs = async () => {
-    try {
-      const response = await fetch('/api/cron');
-      const data = await response.json();
-      setJobs(data.jobs || []);
-    } catch (error) {
-      logger.error('Failed to fetch cron jobs', {
-        component: 'CronDashboard.fetchJobs',
-        endpoint: '/api/cron',
-        error: (error as Error).message 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    const result = await safeApiCallWithRetry(
+      async () => {
+        const response = await fetch('/api/cron');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      },
+      'Failed to load cron jobs'
+    );
 
-  const runJob = async (jobId: string) => {
-    try {
-      const response = await fetch('/api/cron/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId })
-      });
-      
-      if (response.ok) {
-        fetchJobs(); // Refresh list
-      }
-    } catch (error) {
-      logger.error('Failed to run cron job', {
-        component: 'CronDashboard.runJob',
-        jobId,
-        endpoint: '/api/cron/run',
-        error: (error as Error).message 
-      });
+    if (result.success && result.data) {
+      setJobs(result.data.jobs || []);
+      setError(null);
+    } else {
+      setError(result.error);
+      setJobs([]);
     }
-  };
+    
+    setLoading(false);
+  }, [safeApiCallWithRetry]);
+
+  const runJob = useCallback(async (jobId: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    const jobName = job?.name || jobId;
+    
+    const result = await safeApiCall(
+      async () => {
+        const response = await fetch('/api/cron/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to run job: HTTP ${response.status}`);
+        }
+        
+        return response.json();
+      },
+      {
+        errorMessage: `Failed to run job "${jobName}"`,
+        onError: (error) => {
+          logger.error('Failed to run cron job', {
+            component: 'CronDashboard.runJob',
+            jobId,
+            jobName,
+            error: error.message
+          });
+        }
+      }
+    );
+
+    if (result.success) {
+      // Show success feedback and refresh
+      fetchJobs();
+    }
+  }, [jobs, safeApiCall, fetchJobs]);
 
   const toggleJob = async (jobId: string, enable: boolean) => {
     try {
@@ -214,8 +248,29 @@ export function CronDashboard() {
     );
   }
 
+  // Show error state if there's an error and no jobs loaded
+  if (error && jobs.length === 0 && !loading) {
+    return (
+      <InlineErrorBoundary name="CronDashboard">
+        <div className="space-y-4">
+          <NetworkErrorState
+            error={error}
+            title="Failed to load cron jobs"
+            onRetry={fetchJobs}
+            suggestions={[
+              'Check if the OpenClaw Gateway is running',
+              'Verify your network connection',
+              'Try refreshing the page'
+            ]}
+          />
+        </div>
+      </InlineErrorBoundary>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <InlineErrorBoundary name="CronDashboard">
+      <div className="space-y-6">
       {/* Header Stats */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <Card>
@@ -448,11 +503,12 @@ export function CronDashboard() {
         )})}
       </div>
       
-      {filteredJobs.length === 0 && (
+      {filteredJobs.length === 0 && !loading && (
         <div className="text-center py-8 text-muted-foreground">
           No cron jobs found matching your criteria.
         </div>
       )}
-    </div>
+      </div>
+    </InlineErrorBoundary>
   );
 }
