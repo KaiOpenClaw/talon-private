@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
 import { logger, logError } from '@/lib/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,33 @@ export function CronDashboard() {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [frequencyFilter, setFrequencyFilter] = useState('all');
+
+  // Filter jobs for display
+  const filteredJobs = jobs.filter(job => {
+    const matchesStatus = filter === 'all' || job.status === filter;
+    const matchesSearch = searchTerm === '' || 
+      job.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.agent.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFrequency = frequencyFilter === 'all' || 
+      getFrequencyCategory(job.schedule) === frequencyFilter;
+    
+    return matchesStatus && matchesSearch && matchesFrequency;
+  });
+
+  // Keyboard navigation for job list
+  const {
+    focusedIndex,
+    handleKeyDown,
+    getItemProps,
+    getContainerProps
+  } = useKeyboardNavigation({
+    items: filteredJobs,
+    onSelect: (job, index) => {
+      // Default action: run the job
+      runJob(job.id);
+    },
+    getSearchText: (job) => job.name
+  });
 
   useEffect(() => {
     fetchJobs();
@@ -159,14 +187,7 @@ export function CronDashboard() {
     return new Date(lastRun).toLocaleString();
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesFilter = filter === 'all' || job.status === filter;
-    const matchesSearch = job.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.agent.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFrequency = frequencyFilter === 'all' || 
-                            getFrequencyCategory(job.schedule) === frequencyFilter;
-    return matchesFilter && matchesSearch && matchesFrequency;
-  });
+  // filteredJobs is now defined earlier with keyboard navigation
 
   const jobCounts = {
     total: jobs.length,
@@ -335,9 +356,28 @@ export function CronDashboard() {
       </div>
 
       {/* Jobs List */}
-      <div className="space-y-3">
-        {filteredJobs.map((job) => (
-          <Card key={job.id} className="hover:shadow-md transition-shadow">
+      <div 
+        className="space-y-3" 
+        {...getContainerProps()}
+        aria-label="Cron jobs list - Use arrow keys to navigate, Enter to run job"
+      >
+        <div className="text-sm text-muted-foreground mb-2">
+          💡 Use ↑↓ arrows to navigate • Enter to run • Type job name to jump
+        </div>
+        
+        {filteredJobs.map((job, index) => {
+          const itemProps = getItemProps(job, index);
+          return (
+            <Card 
+              key={job.id} 
+              {...itemProps}
+              className={`hover:shadow-md transition-shadow cursor-pointer ${
+                focusedIndex === index ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+              } ${itemProps.className || ''}`}
+              onClick={() => runJob(job.id)}
+              role="button"
+              aria-label={`${job.name} - Status: ${job.status} - Agent: ${job.agent} - Press Enter to run`}
+            >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 flex-1">
@@ -374,28 +414,38 @@ export function CronDashboard() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => runJob(job.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      runJob(job.id);
+                    }}
                     disabled={job.status === 'running'}
+                    aria-label={`Run job ${job.name}`}
+                    title="Run job immediately"
                   >
-                    <Play className="h-4 w-4" />
+                    <Play className="h-4 w-4" aria-hidden="true" />
                   </Button>
                   
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => toggleJob(job.id, job.status === 'disabled')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleJob(job.id, job.status === 'disabled');
+                    }}
+                    aria-label={job.status === 'disabled' ? `Enable job ${job.name}` : `Disable job ${job.name}`}
+                    title={job.status === 'disabled' ? 'Enable this job' : 'Disable this job'}
                   >
                     {job.status === 'disabled' ? (
-                      <Play className="h-4 w-4" />
+                      <Play className="h-4 w-4" aria-hidden="true" />
                     ) : (
-                      <Pause className="h-4 w-4" />
+                      <Pause className="h-4 w-4" aria-hidden="true" />
                     )}
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+        )})}
       </div>
       
       {filteredJobs.length === 0 && (
