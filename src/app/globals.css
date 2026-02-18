@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile optimizations */
+@import '../styles/mobile.css';
+
 :root {
   /* Surface elevation - whisper-quiet shifts */
   --surface-0: #0a0a0b;
