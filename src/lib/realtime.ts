@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { logger } from './logger'
 
 const GATEWAY_WS_URL = process.env.NEXT_PUBLIC_GATEWAY_WS_URL || 'ws://localhost:6820/ws'
 
@@ -57,7 +58,11 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
           setLastMessage(msg)
           onMessage?.(msg)
         } catch (e) {
-          console.error('Failed to parse WS message:', e)
+          logger.error('Failed to parse WebSocket message', {
+            component: 'useRealtime',
+            error: e instanceof Error ? e.message : String(e),
+            rawData: event.data
+          })
         }
       }
       
@@ -71,12 +76,22 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       }
       
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
+        logger.error('WebSocket connection error', {
+          component: 'useRealtime',
+          url: GATEWAY_WS_URL,
+          error: error.toString()
+        })
       }
       
       wsRef.current = ws
     } catch (e) {
-      console.error('Failed to connect WebSocket:', e)
+      logger.error('Failed to establish WebSocket connection', {
+        component: 'useRealtime',
+        url: GATEWAY_WS_URL,
+        error: e instanceof Error ? e.message : String(e),
+        willReconnect: autoReconnect,
+        reconnectInterval
+      })
       if (autoReconnect) {
         reconnectTimeoutRef.current = setTimeout(connect, reconnectInterval)
       }

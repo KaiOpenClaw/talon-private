@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,7 +51,11 @@ export async function POST(request: NextRequest) {
     
     return response;
   } catch (error) {
-    console.error('Login error:', error);
+    logApiError(error, {
+      api: 'auth-login',
+      action: 'authenticate',
+      hasToken: !!request.headers.get('authorization')
+    });
     return NextResponse.json(
       { error: 'Login failed' },
       { status: 500 }
