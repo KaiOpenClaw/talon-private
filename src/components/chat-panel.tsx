@@ -47,7 +47,7 @@ export default function ChatPanel({
       if (res.ok) {
         const data = await res.json()
         if (data.messages) {
-          setMessages(data.messages.map((m: any, i: number) => ({
+          setMessages(data.messages.map((m: Message, i: number) => ({
             id: `hist-${i}`,
             role: m.role,
             content: m.content,

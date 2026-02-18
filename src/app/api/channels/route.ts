@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Channel } from '@/types';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -116,7 +117,20 @@ export async function GET() {
     const data = await response.json();
     
     // Transform OpenClaw channels response to our format
-    const channels = data.channels?.map((channel: any) => ({
+    interface RawChannel {
+      platform?: string;
+      name?: string;
+      status?: string;
+      enabled?: boolean;
+      accounts?: Array<{ name: string; enabled: boolean; status?: string }>;
+      connectedSince?: string;
+      lastActivity?: string;
+      messagesSent?: number;
+      messagesReceived?: number;
+      errorMessage?: string;
+    }
+    
+    const channels = data.channels?.map((channel: RawChannel) => ({
       platform: channel.platform || 'unknown',
       name: channel.name || 'default',
       status: channel.status === 'connected' ? 'online' : 

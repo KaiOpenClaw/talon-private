@@ -4,10 +4,11 @@
  */
 
 import { WebSocket, WebSocketServer } from 'ws'
+import { Agent, Session, CronJob, Message } from '@/types'
 
 interface WebSocketMessage {
   type: 'sessions' | 'agents' | 'cron' | 'chat' | 'status' | 'error'
-  data?: any
+  data?: unknown
   timestamp: number
 }
 
@@ -45,7 +46,7 @@ export function broadcastToClients(message: WebSocketMessage) {
 }
 
 // Convenience functions for specific data types
-export function broadcastSessionUpdate(sessions: any[]) {
+export function broadcastSessionUpdate(sessions: Session[]) {
   broadcastToClients({
     type: 'sessions',
     data: { sessions },
@@ -53,7 +54,7 @@ export function broadcastSessionUpdate(sessions: any[]) {
   })
 }
 
-export function broadcastAgentUpdate(agents: any[]) {
+export function broadcastAgentUpdate(agents: Agent[]) {
   broadcastToClients({
     type: 'agents', 
     data: { agents },
@@ -61,7 +62,7 @@ export function broadcastAgentUpdate(agents: any[]) {
   })
 }
 
-export function broadcastCronUpdate(jobs: any[]) {
+export function broadcastCronUpdate(jobs: CronJob[]) {
   broadcastToClients({
     type: 'cron',
     data: { jobs },
@@ -69,7 +70,7 @@ export function broadcastCronUpdate(jobs: any[]) {
   })
 }
 
-export function broadcastChatMessage(message: any) {
+export function broadcastChatMessage(message: Message) {
   broadcastToClients({
     type: 'chat',
     data: { message },
@@ -77,7 +78,7 @@ export function broadcastChatMessage(message: any) {
   })
 }
 
-export function broadcastStatus(status: any) {
+export function broadcastStatus(status: Record<string, unknown>) {
   broadcastToClients({
     type: 'status',
     data: status,

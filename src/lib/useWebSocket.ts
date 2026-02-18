@@ -5,9 +5,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-interface WebSocketMessage {
+interface TalonWebSocketMessage {
   type: 'sessions' | 'agents' | 'cron' | 'chat' | 'status' | 'error'
-  data?: any
+  data?: unknown
   timestamp: number
 }
 
@@ -15,7 +15,7 @@ interface WebSocketOptions {
   url?: string
   reconnectInterval?: number
   maxReconnectAttempts?: number
-  onMessage?: (message: WebSocketMessage) => void
+  onMessage?: (message: TalonWebSocketMessage) => void
   onConnect?: () => void
   onDisconnect?: () => void
   onError?: (error: Event) => void
@@ -25,7 +25,7 @@ export interface WebSocketState {
   connected: boolean
   connecting: boolean
   error: string | null
-  lastMessage: WebSocketMessage | null
+  lastMessage: TalonWebSocketMessage | null
   reconnectAttempt: number
 }
 
@@ -77,7 +77,7 @@ export function useWebSocket(options: WebSocketOptions = {}) {
 
       ws.current.onmessage = (event) => {
         try {
-          const message: WebSocketMessage = JSON.parse(event.data)
+          const message: TalonWebSocketMessage = JSON.parse(event.data)
           setState(prev => ({ ...prev, lastMessage: message }))
           onMessage?.(message)
         } catch (error) {
@@ -140,7 +140,7 @@ export function useWebSocket(options: WebSocketOptions = {}) {
     }))
   }, [])
 
-  const sendMessage = useCallback((message: any) => {
+  const sendMessage = useCallback((message: Record<string, unknown>) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message))
       return true
@@ -182,7 +182,7 @@ export function useRealtimeData<T>(
   const webSocket = useWebSocket({
     onMessage: (message) => {
       if (message.type === dataType) {
-        setData(message.data)
+        setData(message.data as T)
         setLastUpdate(message.timestamp)
       }
     }
