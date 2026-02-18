@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { CronJob } from '@/types'
+import { env } from '@/lib/config'
 
 // Raw job format from OpenClaw gateway
 interface RawCronJob {
@@ -20,8 +21,8 @@ interface RawCronJob {
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN
+const GATEWAY_URL = env.server.GATEWAY_URL
+const GATEWAY_TOKEN = env.server.GATEWAY_TOKEN
 
 const getHeaders = () => {
   const headers: Record<string, string> = {

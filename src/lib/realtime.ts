@@ -3,7 +3,29 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { logger } from './logger'
 
-const GATEWAY_WS_URL = process.env.NEXT_PUBLIC_GATEWAY_WS_URL || 'ws://localhost:6820/ws'
+/**
+ * Get WebSocket URL dynamically without exposing sensitive configuration
+ * This function constructs the WebSocket URL based on the current window location
+ */
+function getWebSocketUrl(): string {
+  if (typeof window === 'undefined') {
+    // Server-side rendering fallback
+    return 'ws://localhost:6820/ws'
+  }
+  
+  // In development, use localhost
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'ws://localhost:6820/ws'
+  }
+  
+  // In production, construct WebSocket URL from current location
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = window.location.host
+  
+  // Use the same host but WebSocket protocol
+  // In a real deployment, you might want to use a different WebSocket endpoint
+  return `${protocol}//${host}/api/ws`
+}
 
 interface RealtimeMessage {
   type: 'session_update' | 'agent_status' | 'spawn_result' | 'message' | 'error'
@@ -42,7 +64,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     
     try {
-      const ws = new WebSocket(GATEWAY_WS_URL)
+      const ws = new WebSocket(getWebSocketUrl())
       
       ws.onopen = () => {
         setConnected(true)
@@ -78,7 +100,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       ws.onerror = (error) => {
         logger.error('WebSocket connection error', {
           component: 'useRealtime',
-          url: GATEWAY_WS_URL,
+          url: getWebSocketUrl(),
           error: error.toString()
         })
       }
@@ -87,7 +109,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
     } catch (e) {
       logger.error('Failed to establish WebSocket connection', {
         component: 'useRealtime',
-        url: GATEWAY_WS_URL,
+        url: getWebSocketUrl(),
         error: e instanceof Error ? e.message : String(e),
         willReconnect: autoReconnect,
         reconnectInterval

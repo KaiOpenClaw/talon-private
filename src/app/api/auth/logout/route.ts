@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { env } from '@/lib/config';
 
 export async function POST() {
   const response = NextResponse.json({ 
@@ -9,7 +10,7 @@ export async function POST() {
   // Clear auth cookie
   response.cookies.set('talon-auth-token', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.server.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 0, // Expire immediately

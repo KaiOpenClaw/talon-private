@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
+import { env } from '@/lib/config'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
+const GATEWAY_URL = env.server.GATEWAY_URL
 
 /**
  * Spawn a sub-agent session

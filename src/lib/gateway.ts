@@ -5,9 +5,10 @@
  */
 
 import { cache, CACHE_TTL, withCache, withSWR } from './cache'
+import { env } from './config'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
+const GATEWAY_URL = env.server.GATEWAY_URL
+const GATEWAY_TOKEN = env.server.GATEWAY_TOKEN
 
 interface GatewayResponse<T> {
   status: 'ok' | 'error'

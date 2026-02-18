@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
+import { env } from '@/lib/config'
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:5050'
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
-const TALON_API_URL = process.env.TALON_API_URL || 'http://localhost:4100'
-const TALON_API_TOKEN = process.env.TALON_API_TOKEN || ''
+const GATEWAY_URL = env.server.GATEWAY_URL
+const GATEWAY_TOKEN = env.server.GATEWAY_TOKEN
+const TALON_API_URL = env.server.TALON_API_URL || 'http://localhost:4100'
+const TALON_API_TOKEN = env.server.TALON_API_TOKEN || ''
 
 async function fetchGateway(endpoint: string) {
   try {

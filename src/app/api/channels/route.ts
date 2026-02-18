@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Channel } from '@/types';
 import { logger } from '@/lib/logger';
+import { env } from '@/lib/config';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
 
-const GATEWAY_URL = process.env.GATEWAY_URL;
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN;
+const GATEWAY_URL = env.server.GATEWAY_URL;
+const GATEWAY_TOKEN = env.server.GATEWAY_TOKEN;
 
 export async function GET() {
   if (!GATEWAY_URL) {

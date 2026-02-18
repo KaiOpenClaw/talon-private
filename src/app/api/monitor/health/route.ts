@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { env } from '@/lib/config';
 
 interface HealthCheck {
   name: string;
@@ -92,7 +93,7 @@ export async function GET() {
 }
 
 async function checkGatewayHealth(checks: HealthCheck[]) {
-  const gatewayUrl = process.env.GATEWAY_URL;
+  const gatewayUrl = env.server.GATEWAY_URL;
   
   if (!gatewayUrl) {
     checks.push({
@@ -108,7 +109,7 @@ async function checkGatewayHealth(checks: HealthCheck[]) {
     const startTime = Date.now();
     const response = await fetch(`${gatewayUrl}/api/health`, {
       headers: {
-        'Authorization': `Bearer ${process.env.GATEWAY_TOKEN}`,
+        'Authorization': `Bearer ${env.server.GATEWAY_TOKEN}`,
         'User-Agent': 'Talon-Monitor/1.0'
       },
       signal: AbortSignal.timeout(5000) // 5 second timeout

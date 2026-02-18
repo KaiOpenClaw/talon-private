@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { logApiError } from '@/lib/logger';
+import { env } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const expectedToken = process.env.TALON_AUTH_TOKEN;
+    const expectedToken = env.server.TALON_AUTH_TOKEN;
     
     // If no auth configured, reject login attempts
     if (!expectedToken) {
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Set secure cookie
     response.cookies.set('talon-auth-token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.server.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
