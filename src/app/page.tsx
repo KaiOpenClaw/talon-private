@@ -6,7 +6,7 @@ import {
   Terminal, MessageSquare, Zap, Settings, FileText, 
   Activity, Clock, AlertTriangle, ChevronRight, 
   Loader2, RefreshCw, Users, Calendar, Search,
-  FolderOpen, Plus, LogOut
+  FolderOpen, Plus, LogOut, BarChart3
 } from 'lucide-react'
 import ChatPanel from '@/components/chat-panel'
 import { LogoutButton } from '@/components/auth-status'
@@ -370,6 +370,14 @@ export default function Dashboard() {
           >
             <Activity className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm">System Status</span>
+          </Link>
+          <Link
+            href="/performance"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-2 focus:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-terminal-400 focus:ring-offset-2 focus:ring-offset-surface-1 text-ink-secondary transition-colors"
+            aria-label="Performance - Monitor AI agent performance and response times"
+          >
+            <BarChart3 className="w-4 h-4" aria-hidden="true" />
+            <span className="text-sm">Performance</span>
           </Link>
           <Link
             href="/workspaces"
