@@ -71,7 +71,8 @@ export function ChannelsDashboard() {
       logApiError(error, {
         component: 'ChannelsDashboard',
         action: 'reconnectChannel',
-        channelId: channelId,
+        platform: platform,
+        name: name,
         endpoint: '/api/channels/reconnect'
       });
     }
@@ -92,8 +93,9 @@ export function ChannelsDashboard() {
       logApiError(error, {
         component: 'ChannelsDashboard',
         action: 'toggleChannel',
-        channelId: channelId,
-        enabled: enabled,
+        platform: platform,
+        name: name,
+        enabled: enable,
         endpoint: '/api/channels/toggle'
       });
     }
