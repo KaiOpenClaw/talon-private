@@ -3,7 +3,7 @@
  * Provides intelligent caching for mobile and offline experiences
  */
 
-import { logError, logInfo } from './logger'
+import { logger, logApiError } from './logger'
 
 interface CacheEntry<T = any> {
   data: T
@@ -60,7 +60,7 @@ class OfflineCache {
         this.processSyncQueue()
       }
       
-      logInfo('Network status changed', { 
+      logger.info('Network status changed', { 
         isOnline: this.networkState.isOnline 
       })
     }
@@ -115,18 +115,18 @@ class OfflineCache {
               localStorage.removeItem(fullKey)
             }
           } catch (parseError) {
-            logError('Failed to parse cached entry', { key, error: parseError })
+            logger.error('Failed to parse cached entry', { key, error: parseError })
             localStorage.removeItem(fullKey)
           }
         }
       }
 
-      logInfo('Initialized offline cache from storage', {
+      logger.info('Initialized offline cache from storage', {
         memoryEntries: this.memoryCache.size,
         storageEntries: keys.length
       })
     } catch (error) {
-      logError('Failed to initialize from storage', { error })
+      logger.error('Failed to initialize from storage', { error })
     }
   }
 
@@ -181,7 +181,7 @@ class OfflineCache {
       this.memoryCache.delete(key)
     }
 
-    logInfo('Evicted memory cache entries', { 
+    logger.info('Evicted memory cache entries', { 
       removed: toRemove.length,
       remaining: this.memoryCache.size 
     })
@@ -221,11 +221,11 @@ class OfflineCache {
         // Clean up old storage entries if we're at the limit
         this.evictStorageCache()
       } catch (error) {
-        logError('Failed to store in localStorage', { key, error })
+        logger.error('Failed to store in localStorage', { key, error })
       }
     }
 
-    logInfo('Cache entry stored', { 
+    logger.info('Cache entry stored', { 
       key, 
       priority, 
       ttl, 
@@ -275,12 +275,12 @@ class OfflineCache {
         localStorage.removeItem(fullKey)
       }
 
-      logInfo('Evicted storage cache entries', { 
+      logger.info('Evicted storage cache entries', { 
         removed: toRemove.length,
         remaining: entries.length - toRemove.length
       })
     } catch (error) {
-      logError('Failed to evict storage cache', { error })
+      logger.error('Failed to evict storage cache', { error })
     }
   }
 
@@ -307,7 +307,7 @@ class OfflineCache {
           }
         }
       } catch (error) {
-        logError('Failed to get from localStorage', { key, error })
+        logger.error('Failed to get from localStorage', { key, error })
       }
     }
 
@@ -349,7 +349,7 @@ class OfflineCache {
       localStorage.removeItem(storageKey)
     }
 
-    logInfo('Cache entry deleted', { key })
+    logger.info('Cache entry deleted', { key })
   }
 
   /**
@@ -392,7 +392,7 @@ class OfflineCache {
       await this.delete(key)
     }
 
-    logInfo('Cleared cache by tags', { tags, deleted: toDelete.length })
+    logger.info('Cleared cache by tags', { tags, deleted: toDelete.length })
   }
 
   /**
@@ -410,7 +410,7 @@ class OfflineCache {
       }
     }
 
-    logInfo('Cleared all cache entries')
+    logger.info('Cleared all cache entries')
   }
 
   /**
@@ -446,7 +446,7 @@ class OfflineCache {
       timestamp: Date.now()
     })
 
-    logInfo('Added to sync queue', { key, queueSize: this.syncQueue.length })
+    logger.info('Added to sync queue', { key, queueSize: this.syncQueue.length })
   }
 
   /**
@@ -455,7 +455,7 @@ class OfflineCache {
   private async processSyncQueue(): Promise<void> {
     if (!this.networkState.isOnline || this.syncQueue.length === 0) return
 
-    logInfo('Processing sync queue', { queueSize: this.syncQueue.length })
+    logger.info('Processing sync queue', { queueSize: this.syncQueue.length })
 
     const itemsToSync = [...this.syncQueue]
     this.syncQueue = []
@@ -464,12 +464,12 @@ class OfflineCache {
       try {
         // Here you would implement actual sync logic
         // For now, we just log the sync attempt
-        logInfo('Syncing item', { key: item.key, timestamp: item.timestamp })
+        logger.info('Syncing item', { key: item.key, timestamp: item.timestamp })
         
         // In a real implementation, you'd make API calls here
         // and handle failures by re-adding to queue
       } catch (error) {
-        logError('Failed to sync item', { key: item.key, error })
+        logger.error('Failed to sync item', { key: item.key, error })
         
         // Re-add failed items to queue
         this.syncQueue.push(item)

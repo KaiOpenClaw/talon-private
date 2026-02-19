@@ -182,7 +182,7 @@ export function useDashboard() {
   }, [])
 
   // Calculated values
-  const activeSessionCount = sessions.filter(s => s.kind === 'main' || s.kind === 'channel').length
+  const activeSessionCount = sessions?.filter(s => s.kind === 'main' || s.kind === 'channel').length || 0
   const blockersCount = blockers.length
 
   return {
