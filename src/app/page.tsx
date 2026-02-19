@@ -15,6 +15,7 @@ import { useRealtimeData } from '@/lib/useWebSocket'
 import MobileNav from '@/components/mobile-nav'
 import { logger } from '@/lib/logger'
 import { PullToRefresh } from '@/components/mobile/pull-to-refresh'
+import PWAInstallPrompt from '@/components/mobile/pwa-install-prompt'
 
 interface Agent {
   id: string
@@ -620,6 +621,9 @@ export default function Dashboard() {
           </div>
         </aside>
       )}
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   )
 }
