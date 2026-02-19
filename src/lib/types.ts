@@ -446,6 +446,16 @@ export interface MemoryInfo {
   usedJSHeapSize: number;
 }
 
+export interface NotificationMetadata {
+  agentId?: string;
+  sessionId?: string;
+  action?: string;
+  timestamp?: string;
+  priority?: 'low' | 'normal' | 'high' | 'urgent';
+  category?: 'system' | 'deployment' | 'alert' | 'reminder';
+  [key: string]: unknown;
+}
+
 // ============================================================================
 // TYPE GUARDS & UTILITIES
 // ============================================================================
@@ -530,10 +540,7 @@ export interface InputProps extends BaseComponentProps {
 // EXPORT ALL TYPES
 // ============================================================================
 
-export type {
-  // Re-export React types for consistency
-  React,
-} from 'react';
+// All types are exported individually above
 
 // Default export for easy importing
 const Types = {
