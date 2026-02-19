@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronLeft, Search as SearchIcon, Brain } from 'lucide-react'
-import SemanticSearch from '@/components/semantic-search'
+import { LazySemanticSearch } from '@/components/lazy-dashboard-components'
 
 export default function SearchPage() {
   return (
@@ -29,7 +29,7 @@ export default function SearchPage() {
 
       {/* Search */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <SemanticSearch />
+        <LazySemanticSearch />
         
         {/* Info */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">

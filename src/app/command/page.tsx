@@ -7,7 +7,7 @@ import {
   Activity, Clock, AlertTriangle, Box
 } from 'lucide-react'
 import SpawnPanel from '@/components/spawn-panel'
-import SessionsList from '@/components/sessions-list'
+import { LazySessionsList } from '@/components/lazy-dashboard-components'
 import { useBlockers } from '@/lib/hooks'
 
 export default function CommandPage() {
@@ -102,7 +102,7 @@ export default function CommandPage() {
           {/* Sessions List */}
           {(selectedView === 'both' || selectedView === 'sessions') && (
             <div>
-              <SessionsList />
+              <LazySessionsList />
             </div>
           )}
         </div>

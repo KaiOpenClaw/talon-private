@@ -1,7 +1,7 @@
 'use client'
 
 import ChatPanel from '@/components/chat-panel'
-import MobileNav from '@/components/mobile-nav'
+import ConditionalMobileNav from '@/components/conditional-mobile-nav'
 import { PullToRefresh } from '@/components/mobile/pull-to-refresh'
 import PWAInstallPrompt from '@/components/mobile/pwa-install-prompt'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
@@ -75,8 +75,8 @@ export default function Dashboard() {
         Skip to main content
       </a>
 
-      {/* Mobile Navigation */}
-      <MobileNav
+      {/* Conditional Mobile Navigation - Only loads on mobile devices */}
+      <ConditionalMobileNav
         selectedAgent={selectedAgent}
         onAgentSelect={setSelectedAgent}
         agents={agents || []}
