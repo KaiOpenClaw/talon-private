@@ -7,6 +7,10 @@ const nextConfig = {
   // Updated for Next.js 16 - moved from experimental to serverExternalPackages
   serverExternalPackages: ['@lancedb/lancedb'],
   
+  // Safe build optimization settings  
+  productionBrowserSourceMaps: false,
+  poweredByHeader: false,
+  
   // Configure Turbopack (Next.js 16 default)
   turbopack: {
     // Empty config to silence warnings - many apps work fine with default Turbopack
