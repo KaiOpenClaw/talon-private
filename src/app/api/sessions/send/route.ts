@@ -13,8 +13,19 @@ const execAsync = promisify(exec)
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
+  // Define variables outside try block for proper scope in catch
+  let sessionKey: string | undefined
+  let agentId: string | undefined
+  let message: string | undefined
+  let timeoutSeconds: number = 30
+
   try {
-    const { sessionKey, agentId, label, message, timeoutSeconds = 30 } = await request.json()
+    const requestData = await request.json()
+    sessionKey = requestData.sessionKey
+    agentId = requestData.agentId
+    const label = requestData.label
+    message = requestData.message
+    timeoutSeconds = requestData.timeoutSeconds || 30
     
     if (!message) {
       return Response.json({ error: 'message is required' }, { status: 400 })

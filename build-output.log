@@ -1,0 +1,24 @@
+
+> talon@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 30.4s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/api/sessions/send/route.ts:83:7
+Type error: No value exists in scope for the shorthand property 'agentId'. Either declare one or provide an initializer.
+
+[0m [90m 81 |[39m       component[33m:[39m [32m'SessionsSendAPI'[39m[33m,[39m
+ [90m 82 |[39m       action[33m:[39m [32m'commandExecution'[39m[33m,[39m
+[31m[1m>[22m[39m[90m 83 |[39m       agentId[33m,[39m
+ [90m    |[39m       [31m[1m^[22m[39m
+ [90m 84 |[39m       sessionKey[33m,[39m
+ [90m 85 |[39m       messageLength[33m:[39m message[33m?[39m[33m.[39mlength [33m||[39m [35m0[39m[33m,[39m
+ [90m 86 |[39m       timeoutSeconds[0m
+Next.js build worker exited with code: 1 and signal: null
