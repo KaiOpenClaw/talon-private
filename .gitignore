@@ -39,3 +39,9 @@ Thumbs.db
 next-env.d.ts
 .env*.local
 .lancedb/
+
+
+# Deployment secrets (DO NOT COMMIT)
+render-environment-SECRETS.env
+render-environment.env
+generate-secrets.sh
