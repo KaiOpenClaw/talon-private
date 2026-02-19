@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { logger } from '@/lib/logger'
+import { useState, useEffect, useCallback } from 'react'
+import { useSafeApiCall, useComponentError } from '@/hooks/useSafeApiCall'
+import { InlineErrorBoundary } from '@/components/error-boundary'
+import { ErrorState, NetworkErrorState } from '@/components/error-state'
 import { 
   Search, Loader2, FileText, FolderOpen, 
   Brain, Users, ChevronRight, X,
@@ -51,92 +53,116 @@ export default function SemanticSearch({
   const [agentFilter, setAgentFilter] = useState(defaultAgentId || '')
   const [results, setResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [showIndexPanel, setShowIndexPanel] = useState(false)
   const [stats, setStats] = useState<IndexStats | null>(null)
   const [indexing, setIndexing] = useState(false)
   const [agents, setAgents] = useState<string[]>([])
+  const [isStale, setIsStale] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  
+  const safeApiCall = useSafeApiCall()
+  const { error, handleError, clearError } = useComponentError('SemanticSearch')
 
-  // Fetch agent list on mount
+  // Fetch agent list on mount with error handling
   useEffect(() => {
-    fetch('/api/agents')
-      .then(res => res.json())
-      .then(data => {
-        if (data.agents) {
-          setAgents(data.agents.map((a: { id: string }) => a.id))
+    const fetchAgents = async () => {
+      const result = await safeApiCall(
+        () => fetch('/api/agents').then(res => res.json()),
+        {
+          component: 'SemanticSearch',
+          errorMessage: 'Failed to load agent list',
+          showToast: false // Don't show toast for background loading
         }
-      })
-      .catch((error) => logger.error('Failed to fetch agents', {
-        component: 'SemanticSearch',
-        error: error.message
-      }))
-  }, [])
+      )
 
-  async function handleSearch() {
+      if (result.isSuccess && result.data?.agents) {
+        setAgents(result.data.agents.map((a: { id: string }) => a.id))
+      }
+    }
+
+    fetchAgents()
+  }, [safeApiCall])
+
+  const handleSearch = useCallback(async () => {
     if (!query.trim()) return
     
     setSearching(true)
-    setError(null)
+    clearError()
     
-    try {
-      const params = new URLSearchParams({
-        q: query.trim(),
-        limit: '20',
-      })
-      if (agentFilter) params.set('agent', agentFilter)
-      
-      const res = await fetch(`/api/search?${params}`)
-      const data = await res.json()
-      
-      if (!res.ok) {
-        setError(data.error || data.message || 'Search failed')
-        return
-      }
-      
-      setResults(data.results || [])
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setSearching(false)
-    }
-  }
-
-  async function fetchStats() {
-    try {
-      const res = await fetch('/api/index')
-      const data = await res.json()
-      setStats(data)
-    } catch (e) {
-      logger.error('Failed to fetch stats', {
+    const params = new URLSearchParams({
+      q: query.trim(),
+      limit: '20',
+    })
+    if (agentFilter) params.set('agent', agentFilter)
+    
+    const result = await safeApiCall(
+      () => fetch(`/api/search?${params}`).then(res => res.json()),
+      {
         component: 'SemanticSearch',
-        error: (e as Error).message
-      })
-    }
-  }
+        errorMessage: `Search failed for "${query.trim()}"`
+      }
+    )
 
-  async function triggerIndex(agentId?: string) {
+    if (result.isSuccess && result.data) {
+      setResults(result.data.results || [])
+      setIsStale(false)
+      setRetryCount(0)
+    } else if (result.error) {
+      handleError(result.error, false) // Don't show toast, already handled by safeApiCall
+      setIsStale(true)
+    }
+    
+    setSearching(false)
+  }, [query, agentFilter, safeApiCall, clearError, handleError])
+
+  const fetchStats = useCallback(async () => {
+    const result = await safeApiCall(
+      () => fetch('/api/index').then(res => res.json()),
+      {
+        component: 'SemanticSearch',
+        errorMessage: 'Failed to load index statistics',
+        showToast: false // Don't show toast for background stats loading
+      }
+    )
+
+    if (result.isSuccess && result.data) {
+      setStats(result.data)
+    }
+  }, [safeApiCall])
+
+  const triggerIndex = useCallback(async (agentId?: string) => {
     setIndexing(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/index', {
+    clearError()
+
+    const result = await safeApiCall(
+      () => fetch('/api/index', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agentId }),
-      })
-      
-      const data = await res.json()
-      
-      if (res.ok) {
-        await fetchStats()
-      } else {
-        setError(data.error || 'Indexing failed')
+      }).then(res => res.json()),
+      {
+        component: 'SemanticSearch',
+        errorMessage: agentId 
+          ? `Failed to index agent: ${agentId}`
+          : 'Failed to index all agents'
       }
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setIndexing(false)
+    )
+
+    if (result.isSuccess) {
+      await fetchStats() // Refresh stats after successful indexing
+    } else if (result.error) {
+      handleError(result.error, false) // Don't show toast, already handled by safeApiCall
     }
-  }
+    
+    setIndexing(false)
+  }, [safeApiCall, clearError, handleError, fetchStats])
+
+  const handleRetry = useCallback(() => {
+    setRetryCount(prev => prev + 1)
+    if (query.trim()) {
+      handleSearch()
+    }
+  }, [query, handleSearch])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -144,8 +170,42 @@ export default function SemanticSearch({
     }
   }
 
+  // Error state with retry option
+  if (error && !searching && results.length === 0) {
+    return (
+      <NetworkErrorState
+        error={error}
+        onRetry={handleRetry}
+        suggestions={[
+          'Check your internet connection',
+          'Verify OpenClaw Gateway is running',
+          'Try a different search query'
+        ]}
+      />
+    )
+  }
+
   return (
-    <div className="space-y-4">
+    <InlineErrorBoundary name="Semantic Search">
+      <div className="space-y-4">
+        {/* Connection Status Banner */}
+        {isStale && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm text-yellow-800">
+                Search may be using cached data - connection issues detected
+              </span>
+            </div>
+            <button
+              onClick={handleRetry}
+              className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm hover:bg-yellow-200 transition-colors"
+            >
+              <RefreshCw className="h-3 w-3 mr-1 inline" />
+              Retry
+            </button>
+          </div>
+        )}
       {/* Search Input */}
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -275,10 +335,10 @@ export default function SemanticSearch({
       )}
 
       {/* Error */}
-      {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm flex items-center gap-2">
+      {error && results.length > 0 && (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          {error}
+          Search completed with errors: {error.message}
         </div>
       )}
 
@@ -348,6 +408,7 @@ export default function SemanticSearch({
           <p className="text-xs mt-1">Uses semantic embeddings for intelligent matching</p>
         </div>
       )}
-    </div>
+      </div>
+    </InlineErrorBoundary>
   )
 }
