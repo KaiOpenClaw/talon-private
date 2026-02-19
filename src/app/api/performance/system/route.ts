@@ -3,6 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { logApiError } from '@/lib/logger';
+import { performanceMonitor } from '@/lib/performance-monitor';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,9 +32,14 @@ function generateMockSystemMetrics(): SystemMetrics {
 
 export async function GET() {
   try {
-    // TODO: Replace with actual system monitoring
-    // For now, return mock data for development
-    const systemMetrics = generateMockSystemMetrics();
+    // Get real system metrics from performance monitor
+    const systemMetrics = performanceMonitor.getSystemMetrics();
+    
+    // If no real data available (development), fall back to mock data
+    if (systemMetrics.activeConnections === 0 && systemMetrics.requestsPerMinute === 0) {
+      const mockMetrics = generateMockSystemMetrics();
+      return NextResponse.json(mockMetrics);
+    }
 
     return NextResponse.json(systemMetrics);
   } catch (error) {

@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { logApiError } from '@/lib/logger';
+import { performanceMonitor } from '@/lib/performance-monitor';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,11 +93,27 @@ export async function GET(request: NextRequest) {
   const agent = searchParams.get('agent') || 'all';
 
   try {
-    // TODO: Replace with actual performance monitoring system
-    // For now, return mock data for development
-    const metrics = generateMockMetrics(limit, timeRange, agent);
+    // Get real performance metrics
+    const timeRangeMs = timeRange === '5m' ? 5 * 60 * 1000 : 
+                        timeRange === '10m' ? 10 * 60 * 1000 :
+                        timeRange === '1h' ? 60 * 60 * 1000 :
+                        timeRange === '6h' ? 6 * 60 * 60 * 1000 :
+                        24 * 60 * 60 * 1000; // 1d
 
-    return NextResponse.json(metrics);
+    const stats = performanceMonitor.getStats(timeRangeMs);
+    
+    // If no real data available (development), fall back to mock data
+    if (stats.totalOperations === 0) {
+      const metrics = generateMockMetrics(limit, timeRange, agent);
+      return NextResponse.json(metrics);
+    }
+
+    return NextResponse.json({ 
+      stats,
+      metrics: performanceMonitor.metrics
+        .filter(m => agent === 'all' || m.agent === agent)
+        .slice(-limit)
+    });
   } catch (error) {
     logApiError(error, {
       component: 'PerformanceMetricsAPI',
