@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { logger } from './logger'
 
 /**
  * Environment Configuration Schema
@@ -75,7 +76,12 @@ export const clientConfig = (() => {
     }
     return clientConfigSchema.parse(safeEnv)
   } catch (error) {
-    console.error('Client configuration error:', error)
+    logger.error('Client configuration error', {
+      component: 'ConfigSystem',
+      action: 'clientConfigParsing',
+      error: error instanceof Error ? error.message : String(error),
+      fallback: 'development defaults'
+    })
     // Fallback to defaults for client-side
     return {
       NODE_ENV: 'development' as const,
@@ -114,11 +120,17 @@ export function getWebSocketUrl(request?: Request): string {
  */
 export function validateConfig(): void {
   // Server config validation already happens during module load
-  console.log('✅ Environment configuration validated successfully')
+  logger.info('Environment configuration validated successfully', {
+    component: 'ConfigSystem',
+    action: 'configValidation',
+    status: 'success'
+  })
   
   // Log non-sensitive config in development
   if (serverConfig.NODE_ENV === 'development') {
-    console.log('📋 Configuration loaded:', {
+    logger.info('Configuration loaded', {
+      component: 'ConfigSystem',
+      action: 'configLoaded',
       NODE_ENV: serverConfig.NODE_ENV,
       GATEWAY_URL: serverConfig.GATEWAY_URL,
       GATEWAY_TOKEN_SET: !!serverConfig.GATEWAY_TOKEN,

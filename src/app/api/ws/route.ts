@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 import { WebSocketServer, WebSocket } from 'ws'
 import { IncomingMessage } from 'http'
 import { setWebSocketServer } from '@/lib/websocket-broadcast'
+import { logger, logApiError } from '@/lib/logger'
 
 // Global WebSocket server instance
 let wss: WebSocketServer | null = null
@@ -27,7 +28,13 @@ function initWebSocketServer() {
   })
 
   wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
-    console.log('WebSocket client connected:', req.socket.remoteAddress)
+    logger.info('WebSocket client connected', {
+      component: 'WebSocketAPI',
+      action: 'clientConnected',
+      remoteAddress: req.socket.remoteAddress,
+      totalConnections: connections.size + 1,
+      timestamp: Date.now()
+    })
     connections.add(ws)
     
     // Register connections with broadcast system
@@ -52,7 +59,13 @@ function initWebSocketServer() {
     ws.on('message', (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString())
-        console.log('WebSocket message received:', message)
+        logger.debug('WebSocket message received', {
+          component: 'WebSocketAPI',
+          action: 'messageReceived',
+          messageType: message.type,
+          dataSize: data.length,
+          timestamp: Date.now()
+        })
         
         // Handle client requests (subscriptions, etc.)
         if (message.type === 'subscribe') {
@@ -60,18 +73,34 @@ function initWebSocketServer() {
           // Implementation for subscription management
         }
       } catch (error) {
-        console.error('WebSocket message parse error:', error)
+        logApiError(error, {
+          component: 'WebSocketAPI',
+          action: 'messageParseError',
+          dataSize: data.length,
+          rawData: data.toString().substring(0, 100), // First 100 chars for debugging
+          timestamp: Date.now()
+        })
       }
     })
 
     ws.on('close', () => {
-      console.log('WebSocket client disconnected')
+      logger.info('WebSocket client disconnected', {
+        component: 'WebSocketAPI',
+        action: 'clientDisconnected',
+        totalConnections: connections.size - 1,
+        timestamp: Date.now()
+      })
       connections.delete(ws)
       clearInterval(pingInterval)
     })
 
     ws.on('error', (error) => {
-      console.error('WebSocket error:', error)
+      logApiError(error, {
+        component: 'WebSocketAPI',
+        action: 'websocketError',
+        totalConnections: connections.size,
+        timestamp: Date.now()
+      })
       connections.delete(ws)
     })
   })

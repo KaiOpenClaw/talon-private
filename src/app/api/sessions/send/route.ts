@@ -6,6 +6,7 @@
 import { NextRequest } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { logger, logApiError } from '@/lib/logger'
 
 const execAsync = promisify(exec)
 
@@ -41,7 +42,16 @@ export async function POST(request: NextRequest) {
     // Add timeout
     command += ` --timeout ${timeoutSeconds}`
     
-    console.log('Executing:', command)
+    logger.info('Executing OpenClaw CLI command', {
+      component: 'SessionsSendAPI',
+      action: 'executeCommand',
+      command,
+      agentId,
+      sessionKey,
+      label,
+      messageLength: message.length,
+      timeout: timeoutSeconds
+    })
     
     const { stdout, stderr } = await execAsync(command, { 
       timeout: (timeoutSeconds + 10) * 1000,
@@ -49,7 +59,14 @@ export async function POST(request: NextRequest) {
     })
     
     if (stderr && !stderr.includes('npm notice')) {
-      console.error('OpenClaw CLI stderr:', stderr)
+      logger.warn('OpenClaw CLI stderr output', {
+        component: 'SessionsSendAPI',
+        action: 'commandStderr',
+        stderr,
+        command,
+        agentId,
+        sessionKey
+      })
     }
     
     return Response.json({
@@ -60,7 +77,14 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Sessions Send API error:', error)
+    logApiError(error, {
+      component: 'SessionsSendAPI',
+      action: 'commandExecution',
+      agentId,
+      sessionKey,
+      messageLength: message?.length || 0,
+      timeoutSeconds
+    })
     
     return Response.json({
       success: false,
