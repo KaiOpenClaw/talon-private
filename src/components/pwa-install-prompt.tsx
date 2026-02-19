@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Smartphone, Download, X } from 'lucide-react'
+import { logApiError } from '@/lib/logger'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -70,7 +71,11 @@ export function PWAInstallPrompt() {
         handleDismiss()
       }
     } catch (error) {
-      console.error('PWA install failed:', error)
+      logApiError(error, { 
+        component: 'PWAInstallPrompt', 
+        action: 'install',
+        outcome: 'failed'
+      })
     }
     
     setDeferredPrompt(null)

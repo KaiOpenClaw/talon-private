@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Bell, BellOff, X, CheckCircle, AlertTriangle, Info, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { NotificationMetadata } from '@/lib/types'
+import { logApiError } from '@/lib/logger'
 
 export type NotificationPermission = 'default' | 'granted' | 'denied'
 export type NotificationType = 'info' | 'success' | 'warning' | 'error'
@@ -65,7 +66,10 @@ export function PushNotificationSetup() {
         subscribeToaPush()
       }
     } catch (error) {
-      console.error('Failed to request notification permission:', error)
+      logApiError(error, { 
+        component: 'PushNotifications', 
+        action: 'requestPermission'
+      })
     }
   }
 
@@ -86,7 +90,10 @@ export function PushNotificationSetup() {
         body: JSON.stringify(subscription)
       })
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error)
+      logApiError(error, { 
+        component: 'PushNotifications', 
+        action: 'subscribe'
+      })
     }
   }
 

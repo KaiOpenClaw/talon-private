@@ -7,6 +7,7 @@
 
 import { ReactNode, useRef, useState, useCallback, TouchEventHandler } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { logApiError } from '@/lib/logger';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void> | void;
@@ -84,7 +85,12 @@ export default function PullToRefresh({
       try {
         await onRefresh();
       } catch (error) {
-        console.error('Refresh failed:', error);
+        logApiError(error, { 
+          component: 'PullToRefresh', 
+          action: 'refresh',
+          pullDistance,
+          isOverThreshold 
+        });
       } finally {
         setIsRefreshing(false);
         setPullDistance(0);

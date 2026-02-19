@@ -17,7 +17,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import PullToRefresh from './pull-to-refresh';
-import { useWorkspace } from '@/hooks/use-workspace';
+import { useWorkspace, type Message, type Channel } from '@/hooks/use-workspace';
 
 interface MobileWorkspaceProps {
   workspaceId: string;
@@ -219,7 +219,7 @@ export default function MobileWorkspace({ workspaceId }: MobileWorkspaceProps) {
 }
 
 // Mobile-optimized message component
-function MobileMessage({ message }: { message: any }) {
+function MobileMessage({ message }: { message: Message }) {
   return (
     <div className="flex gap-3">
       <div className="w-8 h-8 bg-accent/20 rounded-full flex-shrink-0 flex items-center justify-center">
@@ -233,7 +233,7 @@ function MobileMessage({ message }: { message: any }) {
             {message.role || 'Agent'}
           </span>
           <span className="text-xs text-text-muted">
-            {new Date(message.timestamp).toLocaleTimeString()}
+            {new Date(message.time).toLocaleTimeString()}
           </span>
         </div>
         <div className="text-sm text-text-secondary whitespace-pre-wrap break-words">
@@ -312,8 +312,8 @@ function MobilePanelContent({
 }: {
   type: PanelType;
   workspaceId: string;
-  selectedChannel: any;
-  onSelectChannel: (channel: any) => void;
+  selectedChannel: Channel | null;
+  onSelectChannel: (channel: Channel) => void;
   onClose: () => void;
 }) {
   return (
@@ -356,8 +356,8 @@ function MobileChannelsList({
   onClose
 }: {
   workspaceId: string;
-  selectedChannel: any;
-  onSelectChannel: (channel: any) => void;
+  selectedChannel: Channel | null;
+  onSelectChannel: (channel: Channel) => void;
   onClose: () => void;
 }) {
   // Mock channels - in real implementation, fetch from API

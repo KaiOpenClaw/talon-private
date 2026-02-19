@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { useDeviceOptimizations } from './mobile-optimized-layout'
 import { TouchButton } from './touch-feedback'
 import { useToast } from '@/hooks/use-toast'
+import { logApiError } from '@/lib/logger'
 
 interface VoiceSearchProps {
   onTranscript: (text: string) => void
@@ -196,7 +197,11 @@ export function VoiceSearch({
         navigator.vibrate?.(50)
       }
     } catch (error) {
-      console.error('Failed to start speech recognition:', error)
+      logApiError(error, { 
+        component: 'VoiceSearch', 
+        action: 'startRecognition',
+        isListening: false
+      })
       setState('error')
       setError('Failed to start voice recognition')
     }
