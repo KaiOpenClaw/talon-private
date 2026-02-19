@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { env } from '@/lib/config'
+import { logApiError } from '@/lib/logger'
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -23,7 +24,12 @@ async function fetchGateway(endpoint: string) {
     if (!res.ok) throw new Error(`Gateway ${res.status}`)
     return await res.json()
   } catch (err) {
-    console.error(`Gateway fetch error (${endpoint}):`, err)
+    logApiError(err, {
+      component: 'StatusAPI',
+      action: 'gatewayFetch',
+      endpoint,
+      gatewayUrl: GATEWAY_URL
+    })
     return null
   }
 }
@@ -42,7 +48,12 @@ async function fetchTalonApi(endpoint: string) {
     if (!res.ok) throw new Error(`Talon API ${res.status}`)
     return await res.json()
   } catch (err) {
-    console.error(`Talon API fetch error (${endpoint}):`, err)
+    logApiError(err, {
+      component: 'StatusAPI', 
+      action: 'talonApiFetch',
+      endpoint,
+      talonApiUrl: TALON_API_URL
+    })
     return null
   }
 }

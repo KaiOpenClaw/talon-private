@@ -2,6 +2,7 @@
 // GET /api/performance/metrics - Get recent performance metrics
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,7 +98,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(metrics);
   } catch (error) {
-    console.error('Performance metrics API error:', error);
+    logApiError(error, {
+      component: 'PerformanceMetricsAPI',
+      action: 'fetchMetrics',
+      limit,
+      timeRange,
+      agent
+    });
     return NextResponse.json(
       { error: 'Failed to fetch performance metrics' },
       { status: 500 }

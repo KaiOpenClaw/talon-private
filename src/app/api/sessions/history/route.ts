@@ -6,6 +6,7 @@
 import { NextRequest } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { logger, logApiError } from '@/lib/logger'
 
 const execAsync = promisify(exec)
 
@@ -39,7 +40,14 @@ export async function GET(request: NextRequest) {
       command += ' --include-tools'
     }
     
-    console.log('Executing:', command)
+    logger.info('Executing OpenClaw CLI command', {
+      component: 'SessionsHistoryAPI',
+      action: 'executeCommand',
+      command,
+      sessionKey,
+      limit,
+      includeTools
+    })
     
     const { stdout, stderr } = await execAsync(command, { 
       timeout: 10000,
@@ -47,7 +55,13 @@ export async function GET(request: NextRequest) {
     })
     
     if (stderr && !stderr.includes('npm notice')) {
-      console.error('OpenClaw CLI stderr:', stderr)
+      logger.warn('OpenClaw CLI stderr output', {
+        component: 'SessionsHistoryAPI',
+        action: 'commandStderr',
+        stderr,
+        command,
+        sessionKey
+      })
     }
     
     const result = JSON.parse(stdout)
@@ -62,7 +76,13 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Sessions History API error:', error)
+    logApiError(error, {
+      component: 'SessionsHistoryAPI',
+      action: 'commandExecution',
+      sessionKey,
+      limit,
+      includeTools
+    })
     
     // Return mock data as fallback
     return Response.json({

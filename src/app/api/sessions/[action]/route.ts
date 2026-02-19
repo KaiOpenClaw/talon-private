@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logApiError } from '@/lib/logger'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
@@ -77,7 +78,12 @@ export async function GET(request: NextRequest, { params }: Params) {
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
     }
   } catch (error) {
-    console.error(`Sessions ${action} error:`, error)
+    logApiError(error, {
+      component: 'SessionsActionAPI',
+      action: `sessions${action}GET`,
+      httpMethod: 'GET',
+      sessionAction: action
+    })
     return NextResponse.json({ error: 'Request failed' }, { status: 500 })
   }
 }
@@ -133,7 +139,12 @@ export async function POST(request: NextRequest, { params }: Params) {
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
     }
   } catch (error) {
-    console.error(`Sessions ${action} POST error:`, error)
+    logApiError(error, {
+      component: 'SessionsActionAPI',
+      action: `sessions${action}POST`,
+      httpMethod: 'POST',
+      sessionAction: action
+    })
     return NextResponse.json({ error: 'Request failed' }, { status: 500 })
   }
 }
