@@ -4,11 +4,13 @@ import ChatPanel from '@/components/chat-panel'
 import ConditionalMobileNav from '@/components/conditional-mobile-nav'
 import { PullToRefresh } from '@/components/mobile/pull-to-refresh'
 import PWAInstallPrompt from '@/components/mobile/pwa-install-prompt'
+import { MobileBottomNav } from '@/components/mobile/mobile-bottom-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { DashboardStats } from '@/components/dashboard/dashboard-stats'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { AgentList } from '@/components/dashboard/agent-list'
 import { useDashboard } from '@/hooks/use-dashboard'
+import { useCommandPalette } from '@/hooks/useCommandPalette'
 import { Loader2 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -31,6 +33,8 @@ export default function Dashboard() {
     isLoading,
     hasErrors
   } = useDashboard()
+  
+  const { openCommandPalette } = useCommandPalette()
 
   if (isLoading) {
     return (
@@ -249,6 +253,14 @@ export default function Dashboard() {
           )}
         </PullToRefresh>
       </div>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        sessionCount={activeSessionCount}
+        notificationCount={blockersCount}
+        currentAgent={selectedAgent?.id}
+        onCommandPalette={openCommandPalette}
+      />
     </div>
   )
 }
