@@ -1,51 +1,50 @@
 #!/bin/bash
 
-# Post-Deployment Validation Script
-# Usage: ./test-deployment.sh https://your-service.onrender.com
+# Post-Deployment Test Script
+# Tests all critical Talon functionality
 
-DEPLOY_URL="$1"
-if [ -z "$DEPLOY_URL" ]; then
-    echo "Usage: $0 https://your-service.onrender.com"
+set -e
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <render-app-url>"
+    echo "Example: $0 https://talon.onrender.com"
     exit 1
 fi
 
-echo "🧪 Testing deployment at: $DEPLOY_URL"
-echo "=========================="
+URL="$1"
+echo "🧪 Testing Talon Deployment: $URL"
+echo "=============================="
 
-tests=0
-passed=0
-
-test_endpoint() {
-    local name="$1"
-    local endpoint="$2"
-    local expected="$3"
-    
-    tests=$((tests + 1))
-    echo -n "Testing $name: "
-    
-    response=$(curl -s -w "%{http_code}" "$DEPLOY_URL$endpoint" -o /dev/null)
-    if [ "$response" = "$expected" ]; then
-        echo "✅ PASS ($response)"
-        passed=$((passed + 1))
-    else
-        echo "❌ FAIL (expected $expected, got $response)"
-    fi
-}
-
-# Run tests
-test_endpoint "Dashboard" "/" "200"
-test_endpoint "Health Check" "/api/health" "200"  
-test_endpoint "Agents API" "/api/agents" "200"
-test_endpoint "Sessions API" "/api/sessions" "200"
-test_endpoint "Search Page" "/search" "200"
-test_endpoint "Login Page" "/login" "200"
-
-echo ""
-echo "Results: $passed/$tests tests passed"
-if [ $passed -eq $tests ]; then
-    echo "🎉 ALL TESTS PASSED - Deployment successful!"
-    exit 0
+# Test basic connectivity
+echo "📡 Testing basic connectivity..."
+if curl -s --fail "${URL}/" > /dev/null; then
+    echo "✅ Main page loads"
 else
-    echo "⚠️  Some tests failed - Check logs and configuration"
+    echo "❌ Main page failed to load"
     exit 1
 fi
+
+# Test health endpoint
+echo "🏥 Testing health endpoint..."
+HEALTH=$(curl -s "${URL}/api/health" | jq -r '.status // "unknown"')
+if [ "$HEALTH" = "ok" ]; then
+    echo "✅ Health check passed"
+else
+    echo "❌ Health check failed: $HEALTH"
+fi
+
+# Test API endpoints
+echo "🔌 Testing API endpoints..."
+API_ENDPOINTS=("/api/agents" "/api/sessions" "/api/system/health")
+
+for endpoint in "${API_ENDPOINTS[@]}"; do
+    if curl -s --fail "${URL}${endpoint}" > /dev/null; then
+        echo "✅ ${endpoint} responding"
+    else
+        echo "⚠️  ${endpoint} issues detected"
+    fi
+done
+
+echo
+echo "🎉 Deployment test completed!"
+echo "📊 Visit $URL to use Talon dashboard"

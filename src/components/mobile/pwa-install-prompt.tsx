@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { Download, X, Smartphone, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logApiError } from '@/lib/logger'
 import { TouchButton } from './touch-feedback'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -92,7 +93,12 @@ export function PWAInstallPrompt() {
       setDeferredPrompt(null)
       setIsInstallable(false)
     } catch (error) {
-      console.error('Install prompt error:', error)
+      logApiError(error, {
+        component: 'PWAInstallPrompt',
+        action: 'install',
+        platform,
+        hasPrompt: !!deferredPrompt
+      })
     }
   }
 

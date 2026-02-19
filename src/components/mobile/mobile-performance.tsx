@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Battery, Cpu, Gauge, Smartphone, Zap, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 // Browser API interfaces for TypeScript
 interface BatteryManager {
@@ -79,7 +80,11 @@ export function useMobilePerformance() {
           setIsLowPowerMode(!battery.charging && battery.level < 0.2)
         }
       } catch (error) {
-        console.warn('Battery API not available:', error)
+        logger.warn('Battery API not available', { 
+          component: 'MobilePerformance',
+          feature: 'BatteryAPI',
+          error: error instanceof Error ? error.message : String(error)
+        })
       }
 
       // Memory API
@@ -155,7 +160,11 @@ export function useMobilePerformance() {
       try {
         observer.observe({ entryTypes: ['paint', 'navigation', 'measure'] })
       } catch (error) {
-        console.warn('PerformanceObserver not fully supported:', error)
+        logger.warn('PerformanceObserver not fully supported', {
+          component: 'MobilePerformance', 
+          feature: 'PerformanceObserver',
+          error: error instanceof Error ? error.message : String(error)
+        })
       }
 
       return () => observer.disconnect()

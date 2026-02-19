@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, ReactNode } from 'react'
 import { RefreshCw, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logApiError } from '@/lib/logger'
 
 interface PullToRefreshProps {
   children: ReactNode
@@ -76,7 +77,12 @@ export function PullToRefresh({
         
         await onRefresh()
       } catch (error) {
-        console.error('Refresh failed:', error)
+        logApiError(error, { 
+          component: 'PullToRefresh',
+          action: 'refresh',
+          pullDistance,
+          refreshTriggerHeight 
+        })
       } finally {
         setIsRefreshing(false)
       }

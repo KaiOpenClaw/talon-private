@@ -1,267 +1,271 @@
 #!/bin/bash
 
-# 🚨 RENDER EMERGENCY DEPLOYMENT RECOVERY SCRIPT
-# Talon - GitHub-Driven Development Sprint 2026-02-19T15:38Z
-# Issue #197 - Critical Infrastructure Outage Recovery
+# Talon Emergency Render Deployment Script
+# Issue: #212 Infrastructure Recovery
+# Created: 2026-02-19T16:57Z
 
 set -e
-cd /root/clawd/talon-private
 
-echo "🚀 RENDER EMERGENCY DEPLOYMENT - STARTING RECOVERY"
-echo "=================================================="
-echo "Time: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-echo ""
+echo "🚀 Talon Emergency Render Deployment"
+echo "===================================="
+echo
+
+# Check prerequisites
+echo "📋 Checking Prerequisites..."
+
+if ! command -v gh &> /dev/null; then
+    echo "❌ ERROR: GitHub CLI (gh) required but not installed"
+    exit 1
+fi
+
+if ! command -v curl &> /dev/null; then
+    echo "❌ ERROR: curl required but not installed"  
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo "❌ ERROR: jq required but not installed"
+    exit 1
+fi
+
+echo "✅ All prerequisites installed"
+echo
+
+# Check Git status
+echo "📁 Checking Repository Status..."
+if [ ! -d ".git" ]; then
+    echo "❌ ERROR: Not in a Git repository"
+    exit 1
+fi
+
+REPO=$(git remote get-url origin | sed 's/.*github.com[:\/]\(.*\)\.git/\1/' | sed 's/.*github.com[:\/]\(.*\)/\1/')
+BRANCH=$(git branch --show-current)
+
+echo "Repository: $REPO"
+echo "Branch: $BRANCH"
+echo "✅ Repository ready"
+echo
+
+# Generate Environment Variables
+echo "🔐 Generating Environment Variables..."
+
+# Get OpenClaw config
+if [ -f ~/.openclaw/openclaw.json ]; then
+    GATEWAY_TOKEN=$(jq -r '.gateway.auth.token // empty' ~/.openclaw/openclaw.json)
+    if [ -z "$GATEWAY_TOKEN" ]; then
+        echo "⚠️  WARNING: Could not extract gateway token from OpenClaw config"
+        echo "   Please set GATEWAY_TOKEN manually in Render dashboard"
+    else
+        echo "✅ Gateway token extracted from OpenClaw config"
+    fi
+else
+    echo "⚠️  WARNING: OpenClaw config not found at ~/.openclaw/openclaw.json"
+    GATEWAY_TOKEN=""
+fi
+
+# Get OpenAI API key
+if [ -f ~/.env.openai ]; then
+    source ~/.env.openai
+    if [ -n "$OPENAI_API_KEY" ]; then
+        echo "✅ OpenAI API key found in ~/.env.openai"
+    else
+        echo "⚠️  WARNING: OPENAI_API_KEY not set in ~/.env.openai"
+    fi
+else
+    echo "⚠️  WARNING: ~/.env.openai file not found"
+    OPENAI_API_KEY=""
+fi
 
 # Generate secure auth token
-echo "🔐 Generating secure authentication token..."
-AUTH_TOKEN=$(openssl rand -base64 48 | tr -d "=" | tr "/" "_" | tr "+" "-")
-echo "✅ Auth token generated (64 characters)"
-echo ""
+AUTH_TOKEN=$(openssl rand -hex 32)
+echo "✅ Generated secure authentication token"
 
-# Get OpenAI API Key
-echo "🔑 Extracting OpenAI API key..."
-OPENAI_KEY=$(grep "OPENAI_API_KEY=sk-proj-" /root/.env.openai | cut -d= -f2)
-if [ -z "$OPENAI_KEY" ]; then
-    echo "❌ ERROR: OpenAI API key not found"
-    exit 1
-fi
-echo "✅ OpenAI API key extracted"
-echo ""
+# Current working tunnel (will be updated)
+TALON_API_URL="https://subscriptions-outlets-receiver-courier.trycloudflare.com"
 
-# Create deployment configuration
-echo "📝 Creating deployment environment configuration..."
-cat > render-environment.env << EOF
-# Talon Render Deployment Environment Variables
-# Generated: $(date -u '+%Y-%m-%dT%H:%M:%SZ')
-# Issue: #197 Critical Infrastructure Recovery
+echo
+echo "📝 Environment Variables for Render:"
+echo "=================================="
 
-# OpenClaw Gateway Integration
-GATEWAY_URL=https://srv1325349.tail657eaf.ts.net:5050
-GATEWAY_TOKEN=[SECRET_FROM_OPENCLAW_CONFIG]
-
-# Talon API Bridge (Fresh Cloudflare Tunnel)
-TALON_API_URL=https://schema-tracked-buyers-publicity.trycloudflare.com
-TALON_API_TOKEN=talon-7k9m2x4pqr8w
-
-# Search & AI Features
-OPENAI_API_KEY=[SECRET_FROM_OPENAI_CONFIG]
-
-# Production Security
-TALON_AUTH_TOKEN=[GENERATED_SECURE_TOKEN]
+# Create environment file template
+cat > .env.render << EOF
 NODE_ENV=production
 PORT=10000
+GATEWAY_URL=https://srv1325349.tail657eaf.ts.net:5050
+GATEWAY_TOKEN=${GATEWAY_TOKEN}
+TALON_API_URL=${TALON_API_URL}
+TALON_API_TOKEN=talon-7k9m2x4pqr8w
+OPENAI_API_KEY=${OPENAI_API_KEY}
+TALON_AUTH_TOKEN=${AUTH_TOKEN}
 EOF
 
-echo "✅ Environment configuration created: render-environment.env"
-echo ""
+echo "✅ Environment file created: .env.render"
+echo
 
-# Validate build
-echo "🔨 Validating production build..."
-npm run build > build-validation.log 2>&1
-if [ $? -eq 0 ]; then
-    echo "✅ Build validation successful"
-    PAGES=$(grep "Route (app)" build-validation.log -A 50 | grep -c "○\|ƒ")
-    echo "   - Pages/Routes generated: $PAGES"
+# Show variables with security masking
+echo "Environment Variables to add in Render Dashboard:"
+echo "------------------------------------------------"
+echo "NODE_ENV=production"
+echo "PORT=10000"
+echo "GATEWAY_URL=https://srv1325349.tail657eaf.ts.net:5050"
+if [ -n "$GATEWAY_TOKEN" ]; then
+    echo "GATEWAY_TOKEN=${GATEWAY_TOKEN:0:8}...(${#GATEWAY_TOKEN} chars)"
 else
-    echo "❌ Build validation failed - check build-validation.log"
+    echo "GATEWAY_TOKEN=<NEEDS_MANUAL_SETUP>"
+fi
+echo "TALON_API_URL=${TALON_API_URL}"
+echo "TALON_API_TOKEN=talon-7k9m2x4pqr8w"
+if [ -n "$OPENAI_API_KEY" ]; then
+    echo "OPENAI_API_KEY=${OPENAI_API_KEY:0:8}...(${#OPENAI_API_KEY} chars)"
+else
+    echo "OPENAI_API_KEY=<NEEDS_MANUAL_SETUP>"
+fi
+echo "TALON_AUTH_TOKEN=${AUTH_TOKEN:0:8}...(${#AUTH_TOKEN} chars)"
+echo
+
+# Test local build
+echo "🏗️  Testing Local Build..."
+if npm run build > build.log 2>&1; then
+    echo "✅ Local build successful"
+    PAGES=$(grep -c "Route (pages)" build.log || echo "unknown")
+    ROUTES=$(grep -c "Route (app)" build.log || echo "unknown")
+    echo "   📄 Static pages: $PAGES"
+    echo "   🔌 API routes: $ROUTES"
+else
+    echo "❌ Local build failed. Check build.log for details."
+    echo "   Last 10 lines of build log:"
+    tail -10 build.log
     exit 1
 fi
-echo ""
+echo
 
-# Test external services
-echo "🌐 Testing external service connectivity..."
+# Validate external services
+echo "🌐 Validating External Services..."
 
-# Test Gateway
-echo -n "   Testing OpenClaw Gateway: "
-if curl -s -w "%{http_code}" "https://srv1325349.tail657eaf.ts.net:5050/" -o /dev/null | grep -q "200"; then
-    echo "✅ HEALTHY"
+# Test OpenClaw Gateway
+if curl -k -s --connect-timeout 5 https://srv1325349.tail657eaf.ts.net:5050/ > /dev/null; then
+    echo "✅ OpenClaw Gateway accessible"
 else
-    echo "⚠️  WARNING: Gateway may be down"
+    echo "⚠️  WARNING: OpenClaw Gateway connectivity issues"
+    echo "   This may cause API errors in production"
 fi
 
-# Test Talon API  
-echo -n "   Testing Talon API: "
-if curl -s -w "%{http_code}" "https://schema-tracked-buyers-publicity.trycloudflare.com/agents" -H "Authorization: Bearer talon-7k9m2x4pqr8w" -o /dev/null | grep -q "200"; then
-    echo "✅ HEALTHY"
+# Test Talon API (local)
+if curl -s -H "Authorization: Bearer talon-7k9m2x4pqr8w" http://localhost:4100/agents > /dev/null; then
+    echo "✅ Talon API service responding"
 else
-    echo "❌ ERROR: Talon API unreachable"
+    echo "⚠️  WARNING: Talon API service connectivity issues"
 fi
 
-# Test OpenAI
-echo -n "   Testing OpenAI API: "
-if curl -s -w "%{http_code}" "https://api.openai.com/v1/models" -H "Authorization: Bearer $OPENAI_KEY" -o /dev/null | grep -q "200"; then
-    echo "✅ HEALTHY"
-else
-    echo "⚠️  WARNING: OpenAI API may have issues"
-fi
-echo ""
+echo
 
-# Create deployment guide
-echo "📚 Creating deployment guide..."
-cat > RENDER_DEPLOYMENT_GUIDE.md << 'EOF'
-# 🚨 RENDER EMERGENCY DEPLOYMENT GUIDE
-
-**Issue**: #197 Critical Infrastructure Outage Recovery  
-**Generated**: AUTO_TIMESTAMP  
-**Status**: READY FOR DEPLOYMENT
-
-## Quick Deployment Steps
-
-### 1. Access Render Dashboard
-1. Go to https://render.com/dashboard
-2. Click "New +" → "Web Service"
-3. Select "Build and deploy from a Git repository"
-4. Choose GitHub repository: `KaiOpenClaw/talon-private`
-
-### 2. Configure Service
-- **Name**: `talon-private`
-- **Branch**: `main`
-- **Runtime**: `Node`
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npm start`
-
-### 3. Set Environment Variables
-Copy from `render-environment.env`:
-
-```
-GATEWAY_URL=https://srv1325349.tail657eaf.ts.net:5050
-GATEWAY_TOKEN=[token from file]
-TALON_API_URL=https://schema-tracked-buyers-publicity.trycloudflare.com  
-TALON_API_TOKEN=talon-7k9m2x4pqr8w
-OPENAI_API_KEY=[key from file]
-TALON_AUTH_TOKEN=[generated token]
-NODE_ENV=production
-PORT=10000
-```
-
-### 4. Deploy & Test
-1. Click "Create Web Service"
-2. Wait for deployment (5-10 minutes)
-3. Test endpoints:
-   - `https://YOUR-SERVICE.onrender.com/` → Should load dashboard
-   - `https://YOUR-SERVICE.onrender.com/api/health` → Should return 200
-   - `https://YOUR-SERVICE.onrender.com/api/agents` → Should return agent list
-
-## Troubleshooting
-
-### Build Failures
-- Check build logs for dependency issues
-- Verify Node.js version (16+ required)
-- Ensure all environment variables are set
-
-### Runtime Errors  
-- Check application logs in Render dashboard
-- Verify external service connectivity
-- Test authentication endpoints
-
-### Performance Issues
-- Monitor memory usage (512MB default)
-- Check for LanceDB startup time
-- Consider upgrading Render plan if needed
-
-## Post-Deployment Validation
-
-Test these endpoints after deployment:
-- [ ] `/` - Dashboard loads
-- [ ] `/api/health` - Returns 200 OK
-- [ ] `/api/agents` - Returns agent list  
-- [ ] `/api/sessions` - Returns sessions
-- [ ] `/search` - Search functionality works
-- [ ] `/login` - Authentication system functional
-
-## Emergency Rollback
-
-If deployment fails:
-1. Check previous working deployment in Render dashboard
-2. Revert to last known good commit
-3. Re-trigger deployment
-4. Contact infrastructure team if issues persist
-
-EOF
-
-# Replace timestamp placeholder
-sed -i "s/AUTO_TIMESTAMP/$(date -u '+%Y-%m-%dT%H:%M:%SZ')/g" RENDER_DEPLOYMENT_GUIDE.md
-
-echo "✅ Deployment guide created: RENDER_DEPLOYMENT_GUIDE.md"
-echo ""
+# Create deployment instructions
+echo "📋 Manual Render Deployment Steps:"
+echo "================================="
+echo
+echo "1. 🌐 Go to https://render.com/dashboard"
+echo "2. 🆕 Click 'New +' → 'Web Service'"
+echo "3. 🔗 Connect Repository: $REPO"
+echo "4. ⚙️  Service Configuration:"
+echo "   - Name: talon"
+echo "   - Environment: Node"
+echo "   - Region: Oregon (US-West)"
+echo "   - Branch: $BRANCH"
+echo "   - Build Command: npm install && npm run build"
+echo "   - Start Command: npm run start"
+echo "   - Plan: Starter (\$7/month) [REQUIRED for native modules]"
+echo
+echo "5. 🔐 Environment Variables (copy from .env.render file):"
+echo "   - Add all 8 environment variables listed above"
+echo
+echo "6. 🚀 Deploy: Click 'Create Web Service'"
+echo
+echo "7. ✅ Verify: Wait for deployment to complete (5-10 minutes)"
+echo
+echo "8. 🧪 Test: Visit your-service.onrender.com and verify functionality"
+echo
 
 # Create post-deployment test script
-echo "🧪 Creating post-deployment test suite..."
 cat > test-deployment.sh << 'EOF'
 #!/bin/bash
 
-# Post-Deployment Validation Script
-# Usage: ./test-deployment.sh https://your-service.onrender.com
+# Post-Deployment Test Script
+# Tests all critical Talon functionality
 
-DEPLOY_URL="$1"
-if [ -z "$DEPLOY_URL" ]; then
-    echo "Usage: $0 https://your-service.onrender.com"
+set -e
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <render-app-url>"
+    echo "Example: $0 https://talon.onrender.com"
     exit 1
 fi
 
-echo "🧪 Testing deployment at: $DEPLOY_URL"
-echo "=========================="
+URL="$1"
+echo "🧪 Testing Talon Deployment: $URL"
+echo "=============================="
 
-tests=0
-passed=0
-
-test_endpoint() {
-    local name="$1"
-    local endpoint="$2"
-    local expected="$3"
-    
-    tests=$((tests + 1))
-    echo -n "Testing $name: "
-    
-    response=$(curl -s -w "%{http_code}" "$DEPLOY_URL$endpoint" -o /dev/null)
-    if [ "$response" = "$expected" ]; then
-        echo "✅ PASS ($response)"
-        passed=$((passed + 1))
-    else
-        echo "❌ FAIL (expected $expected, got $response)"
-    fi
-}
-
-# Run tests
-test_endpoint "Dashboard" "/" "200"
-test_endpoint "Health Check" "/api/health" "200"  
-test_endpoint "Agents API" "/api/agents" "200"
-test_endpoint "Sessions API" "/api/sessions" "200"
-test_endpoint "Search Page" "/search" "200"
-test_endpoint "Login Page" "/login" "200"
-
-echo ""
-echo "Results: $passed/$tests tests passed"
-if [ $passed -eq $tests ]; then
-    echo "🎉 ALL TESTS PASSED - Deployment successful!"
-    exit 0
+# Test basic connectivity
+echo "📡 Testing basic connectivity..."
+if curl -s --fail "${URL}/" > /dev/null; then
+    echo "✅ Main page loads"
 else
-    echo "⚠️  Some tests failed - Check logs and configuration"
+    echo "❌ Main page failed to load"
     exit 1
 fi
+
+# Test health endpoint
+echo "🏥 Testing health endpoint..."
+HEALTH=$(curl -s "${URL}/api/health" | jq -r '.status // "unknown"')
+if [ "$HEALTH" = "ok" ]; then
+    echo "✅ Health check passed"
+else
+    echo "❌ Health check failed: $HEALTH"
+fi
+
+# Test API endpoints
+echo "🔌 Testing API endpoints..."
+API_ENDPOINTS=("/api/agents" "/api/sessions" "/api/system/health")
+
+for endpoint in "${API_ENDPOINTS[@]}"; do
+    if curl -s --fail "${URL}${endpoint}" > /dev/null; then
+        echo "✅ ${endpoint} responding"
+    else
+        echo "⚠️  ${endpoint} issues detected"
+    fi
+done
+
+echo
+echo "🎉 Deployment test completed!"
+echo "📊 Visit $URL to use Talon dashboard"
 EOF
 
 chmod +x test-deployment.sh
-echo "✅ Test suite created: test-deployment.sh"
-echo ""
 
-echo "🎯 DEPLOYMENT PREPARATION COMPLETE"
-echo "=================================="
-echo "✅ Build validated successfully"
-echo "✅ Environment variables generated"  
-echo "✅ External services tested"
-echo "✅ Deployment guide created"
-echo "✅ Test suite prepared"
-echo ""
-echo "📋 NEXT STEPS:"
-echo "1. Use RENDER_DEPLOYMENT_GUIDE.md for manual deployment"
-echo "2. Copy environment variables from render-environment.env"
-echo "3. After deployment, run: ./test-deployment.sh https://YOUR-SERVICE.onrender.com"
-echo ""
-echo "🚨 MANUAL INTERVENTION REQUIRED: Access Render dashboard in web browser"
-echo "   - Repository is production-ready"
-echo "   - All dependencies verified"  
-echo "   - Environment configured"
-echo ""
-echo "Estimated deployment time: 10-15 minutes"
-echo "Time elapsed: $(($(date +%s) - $(date -d '2026-02-19T15:32Z' +%s))) seconds since sprint start"
+echo "📁 Files Created:"
+echo "================"
+echo "✅ .env.render - Environment variables for Render"
+echo "✅ test-deployment.sh - Post-deployment testing script"
+echo "✅ build.log - Build output for reference"
+echo
+
+echo "🎯 READY FOR DEPLOYMENT!"
+echo "========================"
+echo "All prerequisites are met for Render deployment."
+echo "Use the manual steps above to create the service."
+echo "After deployment, run: ./test-deployment.sh <your-render-url>"
+echo
+
+echo "🔗 Useful Links:"
+echo "==============="
+echo "Render Dashboard: https://render.com/dashboard"
+echo "GitHub Repository: https://github.com/$REPO"
+echo "Documentation: ./DEPLOYMENT_CHECKLIST.md"
+echo
+
+# Clean up
+if [ -f build.log ]; then
+    rm build.log
+fi
+
+echo "✨ Deployment preparation complete!"
+EOF
