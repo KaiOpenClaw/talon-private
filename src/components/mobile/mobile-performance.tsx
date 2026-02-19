@@ -9,26 +9,19 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Battery, Cpu, Gauge, Smartphone, Zap, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logger } from '@/lib/logger'
+import { 
+  BatteryInfo, 
+  NetworkInfo, 
+  DeviceMemoryInfo, 
+  PerformanceMetric,
+  BaseComponentProps 
+} from '@/lib/types'
 
-// Browser API interfaces for TypeScript
-interface BatteryManager {
-  level: number
-  charging: boolean
-  chargingTime: number
-  dischargingTime: number
-}
+// Extended browser API interfaces
+interface BatteryManager extends BatteryInfo {}
 
-interface MemoryInfo {
-  usedJSHeapSize: number
-  jsHeapSizeLimit: number
-  totalJSHeapSize: number
-}
-
-interface ConnectionInfo {
-  type?: string
-  effectiveType: string
-  downlink?: number
-  rtt?: number
+interface ConnectionInfo extends NetworkInfo {
+  rtt?: number;
 }
 
 interface MobilePerformanceMetrics {
@@ -45,6 +38,7 @@ interface MobilePerformanceMetrics {
   effectiveType?: string
 }
 
+// Using centralized PerformanceMetric type from @/lib/types
 interface PerformanceEntry {
   name: string
   startTime: number
@@ -202,8 +196,7 @@ export function useMobilePerformance() {
   }
 }
 
-interface MobilePerformanceIndicatorProps {
-  className?: string
+interface MobilePerformanceIndicatorProps extends BaseComponentProps {
   variant?: 'compact' | 'detailed'
 }
 

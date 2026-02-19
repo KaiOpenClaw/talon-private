@@ -10,6 +10,7 @@ import { Download, X, Smartphone, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logApiError } from '@/lib/logger'
 import { TouchButton } from './touch-feedback'
+import { PWAInstallPrompt as PWAInstallPromptType } from '@/lib/types'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>

@@ -4,13 +4,12 @@ import { useState, useRef, useEffect, ReactNode } from 'react'
 import { RefreshCw, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logApiError } from '@/lib/logger'
+import { BaseComponentProps } from '@/lib/types'
 
-interface PullToRefreshProps {
-  children: ReactNode
+interface PullToRefreshProps extends BaseComponentProps {
   onRefresh: () => Promise<void>
   disabled?: boolean
   refreshTriggerHeight?: number
-  className?: string
 }
 
 export function PullToRefresh({
