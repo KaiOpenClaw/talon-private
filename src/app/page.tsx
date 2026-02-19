@@ -2,8 +2,7 @@
 
 import ChatPanel from '@/components/chat-panel'
 import ConditionalMobileNav from '@/components/conditional-mobile-nav'
-import { PullToRefresh } from '@/components/mobile/pull-to-refresh'
-import PWAInstallPrompt from '@/components/mobile/pwa-install-prompt'
+import { MobilePullRefresh } from '@/components/pull-to-refresh'
 import { MobileBottomNav } from '@/components/mobile/mobile-bottom-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { DashboardStats } from '@/components/dashboard/dashboard-stats'
@@ -123,7 +122,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden" id="main-content">
-        <PullToRefresh onRefresh={handleRefresh}>
+        <MobilePullRefresh onRefresh={handleRefresh}>
           {view === 'chat' && selectedAgent && (
             <ChatPanel
               agentId={selectedAgent.id}
@@ -251,7 +250,7 @@ export default function Dashboard() {
               </div>
             </div>
           )}
-        </PullToRefresh>
+        </MobilePullRefresh>
       </div>
       
       {/* Mobile Bottom Navigation */}
