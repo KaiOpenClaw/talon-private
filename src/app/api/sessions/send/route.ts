@@ -91,10 +91,10 @@ export async function POST(request: NextRequest) {
     logApiError(error, {
       component: 'SessionsSendAPI',
       action: 'commandExecution',
-      agentId,
-      sessionKey,
+      agentId: agentId,
+      sessionKey: sessionKey,
       messageLength: message?.length || 0,
-      timeoutSeconds
+      timeoutSeconds: timeoutSeconds
     })
     
     return Response.json({
