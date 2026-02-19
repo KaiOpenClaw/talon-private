@@ -2,6 +2,7 @@
 
 import { lazy, Suspense } from 'react'
 import { Loader2, Search, Shield } from 'lucide-react'
+import { Session } from '@/lib/hooks'
 
 // Lazy load heavy dashboard components to reduce initial bundle size
 // These components are loaded on-demand when actually needed
@@ -47,25 +48,31 @@ const SessionsLoader = () => (
 )
 
 // Wrapper components with enhanced suspense fallbacks
-export const LazySemanticSearch = (props: any) => (
+export const LazySemanticSearch = (props: { 
+  defaultAgentId?: string
+  onResultClick?: (result: any) => void 
+}) => (
   <Suspense fallback={<SearchLoader />}>
     <SemanticSearch {...props} />
   </Suspense>
 )
 
-export const LazySecurityGuide = (props: any) => (
+export const LazySecurityGuide = () => (
   <Suspense fallback={<SecurityLoader />}>
-    <SecurityGuide {...props} />
+    <SecurityGuide />
   </Suspense>
 )
 
-export const LazySecurityScanner = (props: any) => (
+export const LazySecurityScanner = () => (
   <Suspense fallback={<SecurityLoader />}>
-    <SecurityScanner {...props} />
+    <SecurityScanner />
   </Suspense>
 )
 
-export const LazySessionsList = (props: any) => (
+export const LazySessionsList = (props: {
+  onSelectSession?: (session: Session) => void
+  selectedSessionKey?: string
+}) => (
   <Suspense fallback={<SessionsLoader />}>
     <SessionsList {...props} />
   </Suspense>

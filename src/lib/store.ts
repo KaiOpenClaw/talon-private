@@ -1,27 +1,5 @@
 import { create } from 'zustand'
-
-interface Agent {
-  id: string
-  name: string
-  description: string
-  status: 'online' | 'busy' | 'offline'
-  avatar: string
-  workdir: string
-  memorySize?: string
-  lastActivity?: string
-  blockers?: string[]
-  tokenUsage?: number
-  model?: string
-}
-
-interface Blocker {
-  id: string
-  text: string
-  owner?: string
-  status: 'open' | 'in-progress' | 'resolved'
-  priority: 'high' | 'medium' | 'low'
-  category?: string
-}
+import { Agent, Blocker } from './hooks'
 
 interface Message {
   role: 'user' | 'agent' | 'system'

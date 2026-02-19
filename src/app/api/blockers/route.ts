@@ -2,18 +2,9 @@ import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { logApiError } from '@/lib/logger'
+import { Blocker } from '@/lib/hooks'
 
 const BLOCKERS_PATH = process.env.BLOCKERS_PATH || '/root/clawd/BLOCKERS.md'
-
-interface Blocker {
-  id: string
-  text: string
-  owner?: string
-  status: 'open' | 'in-progress' | 'resolved'
-  priority: 'high' | 'medium' | 'low'
-  age?: string
-  category?: string
-}
 
 function parseBlockersFile(content: string): Blocker[] {
   const blockers: Blocker[] = []

@@ -10,32 +10,7 @@ import {
 } from 'lucide-react'
 import { LogoutButton } from '@/components/auth-status'
 import { ConnectionStatus } from '@/components/connection-status'
-
-interface Agent {
-  id: string
-  name: string
-  avatar: string
-  description: string
-  status: 'online' | 'busy' | 'offline'
-  memorySize?: string
-  lastActivity?: string
-  workdir: string
-}
-
-interface Session {
-  key: string
-  agentId?: string
-  kind: string
-  lastActivity?: string
-  messageCount?: number
-}
-
-interface Blocker {
-  id: string
-  text: string
-  priority: 'high' | 'medium' | 'low'
-  category?: string
-}
+import { Agent, Session, Blocker } from '@/lib/hooks'
 
 interface MobileNavProps {
   agents: Agent[]

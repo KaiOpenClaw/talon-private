@@ -1,32 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRealtimeData } from '@/lib/useWebSocket'
 import { logger } from '@/lib/logger'
-
-interface Agent {
-  id: string
-  name: string
-  avatar: string
-  description: string
-  status: 'online' | 'busy' | 'offline'
-  memorySize?: string
-  lastActivity?: string
-  workdir: string
-}
-
-interface Session {
-  key: string
-  agentId?: string
-  kind: string
-  lastActivity?: string
-  messageCount?: number
-}
-
-interface Blocker {
-  id: string
-  text: string
-  priority: 'high' | 'medium' | 'low'
-  category?: string
-}
+import { Agent, Session, Blocker } from '@/lib/hooks'
 
 export function useDashboard() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)

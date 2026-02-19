@@ -2,16 +2,17 @@
 
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Agent, Session, Blocker } from '@/lib/hooks'
 
 // Lazy load mobile nav only when needed
 const MobileNav = lazy(() => import('./mobile-nav'))
 
 interface ConditionalMobileNavProps {
-  selectedAgent: any
-  onAgentSelect: (agent: any) => void
-  agents: any[]
-  sessions: any[]
-  blockers: any[]
+  selectedAgent: Agent | null
+  onAgentSelect: (agent: Agent) => void
+  agents: Agent[]
+  sessions: Session[]
+  blockers: Blocker[]
   loading: boolean
   focusedAgentIndex: number
   onFocusedAgentChange: (index: number) => void

@@ -14,11 +14,19 @@ import {
 } from 'lucide-react';
 import { CronJob } from '@/hooks/use-cron';
 
+interface ItemProps {
+  tabIndex: number;
+  'aria-selected': boolean;
+  role: string;
+  onFocus: () => void;
+  className: string;
+}
+
 interface CronJobCardProps {
   job: CronJob;
   index: number;
   focusedIndex: number;
-  itemProps: any;
+  itemProps: ItemProps;
   onRun: (jobId: string) => void;
   onToggle: (jobId: string, enable: boolean) => void;
   parseNextRun: (nextRun: string) => string;
