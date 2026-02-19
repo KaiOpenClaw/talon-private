@@ -2,6 +2,7 @@
 // GET /api/performance/system - Get system health metrics
 
 import { NextResponse } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,11 @@ export async function GET() {
 
     return NextResponse.json(systemMetrics);
   } catch (error) {
-    console.error('System metrics API error:', error);
+    logApiError(error, {
+      component: 'SystemMetricsAPI',
+      action: 'fetch_system_metrics',
+      endpoint: '/api/performance/system'
+    });
     return NextResponse.json(
       { error: 'Failed to fetch system metrics' },
       { status: 500 }

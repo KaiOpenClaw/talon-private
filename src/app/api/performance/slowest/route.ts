@@ -2,6 +2,7 @@
 // GET /api/performance/slowest - Get slowest operations
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,7 +110,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(slowestOps);
   } catch (error) {
-    console.error('Slowest operations API error:', error);
+    logApiError(error, {
+      component: 'SlowestOperationsAPI',
+      action: 'fetch_slowest_operations',
+      endpoint: '/api/performance/slowest'
+    });
     return NextResponse.json(
       { error: 'Failed to fetch slowest operations' },
       { status: 500 }

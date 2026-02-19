@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Agent, CronJob, Channel, Session } from '@/types';
+import { logApiError } from '@/lib/logger';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic'
@@ -69,7 +70,12 @@ export async function GET() {
           };
         }
       } catch (error) {
-        console.error('Failed to fetch gateway health:', error);
+        logApiError(error, {
+          component: 'SystemHealthAPI',
+          action: 'fetch_gateway_health',
+          endpoint: '/api/system/health',
+          gateway_url: GATEWAY_URL
+        });
         gatewayHealth.status = 'degraded';
       }
     }
@@ -137,7 +143,11 @@ export async function GET() {
 
     return NextResponse.json(healthData);
   } catch (error) {
-    console.error('Failed to fetch system health:', error);
+    logApiError(error, {
+      component: 'SystemHealthAPI',
+      action: 'fetch_system_health',
+      endpoint: '/api/system/health'
+    });
     
     // Return mock data for development
     return NextResponse.json({

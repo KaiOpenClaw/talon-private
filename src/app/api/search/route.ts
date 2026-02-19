@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as lancedb from '@/lib/lancedb'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { logApiError } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   // Apply rate limiting for search
@@ -37,7 +38,12 @@ export async function GET(request: NextRequest) {
       count: results.length,
     })
   } catch (error) {
-    console.error('Search error:', error)
+    logApiError(error, {
+      component: 'SearchAPI',
+      action: 'search_query',
+      endpoint: '/api/search',
+      params: { query, agentId, limit }
+    })
     return NextResponse.json({
       error: 'Search failed',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -73,7 +79,12 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error) {
-    console.error('Search POST error:', error)
+    logApiError(error, {
+      component: 'SearchAPI',
+      action: 'search_post',
+      endpoint: '/api/search',
+      method: 'POST'
+    })
     return NextResponse.json({
       error: 'Operation failed',
       message: error instanceof Error ? error.message : 'Unknown error'

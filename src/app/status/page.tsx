@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import dynamic from 'next/dynamic'
+import { logger } from '@/lib/logger'
 
 // Dynamically import Three.js scene to avoid SSR issues
 const Scene3D = dynamic(() => import('@/components/status-scene'), { 
@@ -60,7 +61,11 @@ export default function StatusPage() {
         const json = await res.json()
         setData(json)
       } catch (err) {
-        console.error('Failed to fetch status:', err)
+        logger.error('Failed to fetch status', {
+          component: 'StatusPage',
+          action: 'fetch_status_data',
+          error: err instanceof Error ? err.message : String(err)
+        })
       } finally {
         setLoading(false)
       }

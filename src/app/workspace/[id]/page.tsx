@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 import { 
   ChevronLeft, FileText, FolderOpen, MessageSquare, 
   Zap, Box, Settings, Loader2, Send, Plus, Hash,
@@ -97,7 +98,12 @@ export default function WorkspacePage() {
           }
         }
       } catch (e) {
-        console.error('Failed to load workspace:', e)
+        logger.error('Failed to load workspace', {
+          component: 'WorkspacePage',
+          action: 'load_workspace',
+          workspaceId,
+          error: e instanceof Error ? e.message : String(e)
+        })
       } finally {
         setLoading(false)
       }
@@ -182,7 +188,13 @@ export default function WorkspacePage() {
         }
       }
     } catch (e) {
-      console.error('Send failed:', e)
+      logger.error('Send message failed', {
+        component: 'WorkspacePage',
+        action: 'send_message',
+        workspaceId,
+        channelId: selectedChannel?.id,
+        error: e instanceof Error ? e.message : String(e)
+      })
     } finally {
       setSending(false)
     }

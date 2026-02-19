@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 const GATEWAY_URL = process.env.GATEWAY_URL;
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN;
@@ -43,7 +44,12 @@ export async function POST(request: NextRequest) {
       data
     });
   } catch (error) {
-    console.error('Failed to install skill:', error);
+    logApiError(error, {
+      component: 'SkillsInstallAPI',
+      action: 'install_skill',
+      endpoint: '/api/skills/install',
+      method: 'POST'
+    });
     
     // Mock installation for development
     return NextResponse.json({
@@ -94,7 +100,12 @@ export async function DELETE(request: NextRequest) {
       data
     });
   } catch (error) {
-    console.error('Failed to uninstall skill:', error);
+    logApiError(error, {
+      component: 'SkillsInstallAPI',
+      action: 'uninstall_skill',
+      endpoint: '/api/skills/install',
+      method: 'DELETE'
+    });
     
     return NextResponse.json({
       success: false,

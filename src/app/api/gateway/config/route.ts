@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:5050';
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || '';
@@ -44,7 +45,12 @@ export async function GET() {
     const data = await res.json();
     return NextResponse.json({ config: data.config || data.result?.config || data });
   } catch (error) {
-    console.error('Gateway config fetch error:', error);
+    logApiError(error, {
+      component: 'GatewayConfigAPI',
+      action: 'fetch_config',
+      endpoint: '/api/gateway/config',
+      gateway_url: GATEWAY_URL
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -83,7 +89,13 @@ export async function POST(request: Request) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Gateway config update error:', error);
+    logApiError(error, {
+      component: 'GatewayConfigAPI',
+      action: 'update_config',
+      endpoint: '/api/gateway/config',
+      method: 'POST',
+      gateway_url: GATEWAY_URL
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

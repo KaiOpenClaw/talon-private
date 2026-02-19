@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logApiError } from '@/lib/logger'
 
 const TALON_API_URL = process.env.TALON_API_URL || 'https://institutions-indicating-limit-were.trycloudflare.com'
 const TALON_API_TOKEN = process.env.TALON_API_TOKEN || ''
@@ -41,7 +42,12 @@ export async function GET(request: NextRequest) {
       const data = await res.json()
       return NextResponse.json({ content: data.content, size: data.content?.length || 0 })
     } catch (e) {
-      console.error('Failed to fetch file:', e)
+      logApiError(e, {
+        component: 'MemoryAPI',
+        action: 'fetch_file',
+        endpoint: '/api/memory',
+        params: { path: request.nextUrl.searchParams.get('path') }
+      })
       return NextResponse.json({ error: 'Failed to load file' }, { status: 500 })
     }
   }
@@ -105,7 +111,12 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ ok: true })
   } catch (e) {
-    console.error('Memory POST error:', e)
+    logApiError(e, {
+      component: 'MemoryAPI',
+      action: 'write_file',
+      endpoint: '/api/memory',
+      method: 'POST'
+    })
     return NextResponse.json({ error: 'Request failed' }, { status: 500 })
   }
 }

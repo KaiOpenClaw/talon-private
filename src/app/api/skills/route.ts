@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Skill } from '@/types';
+import { logApiError } from '@/lib/logger';
 
 // Raw skill format from OpenClaw gateway
 interface RawSkill {
@@ -61,7 +62,12 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error('Failed to fetch skills:', error);
+    logApiError(error, {
+      component: 'SkillsAPI',
+      action: 'fetch_skills',
+      endpoint: '/api/skills',
+      gateway_url: `${GATEWAY_URL}/api/skills`
+    });
     
     // Return mock data for development/testing
     const mockSkills = [

@@ -19,15 +19,16 @@ interface SessionMessage {
 }
 
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const sessionKey = searchParams.get('sessionKey')
+  const limit = searchParams.get('limit')
+  const includeTools = searchParams.get('includeTools') === 'true'
+  
+  if (!sessionKey) {
+    return Response.json({ error: 'sessionKey is required' }, { status: 400 })
+  }
+
   try {
-    const searchParams = request.nextUrl.searchParams
-    const sessionKey = searchParams.get('sessionKey')
-    const limit = searchParams.get('limit')
-    const includeTools = searchParams.get('includeTools') === 'true'
-    
-    if (!sessionKey) {
-      return Response.json({ error: 'sessionKey is required' }, { status: 400 })
-    }
     
     // Build OpenClaw CLI command for session history
     let command = `openclaw sessions history ${sessionKey} --json`

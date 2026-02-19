@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 import { 
   FolderOpen, ChevronLeft, Plus, Search, 
   Loader2, Clock, FileText, Zap, Users,
@@ -50,7 +51,11 @@ export default function WorkspacesPage() {
         
         setWorkspaces(workspacesWithSessions)
       } catch (e) {
-        console.error('Failed to fetch workspaces:', e)
+        logger.error('Failed to fetch workspaces', {
+          component: 'WorkspacesPage',
+          action: 'fetch_workspaces',
+          error: e instanceof Error ? e.message : String(e)
+        })
       } finally {
         setLoading(false)
       }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
+import { logApiError } from '@/lib/logger'
 
 const BLOCKERS_PATH = process.env.BLOCKERS_PATH || '/root/clawd/BLOCKERS.md'
 
@@ -132,7 +133,12 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Blockers API error:', error)
+    logApiError(error, {
+      component: 'BlockersAPI',
+      action: 'fetch_blockers',
+      endpoint: '/api/blockers',
+      blockers_path: BLOCKERS_PATH
+    })
     return NextResponse.json({ blockers: [], error: 'Failed to load blockers' }, { status: 500 })
   }
 }

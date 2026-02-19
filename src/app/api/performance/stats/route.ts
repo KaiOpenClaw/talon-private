@@ -2,6 +2,7 @@
 // GET /api/performance/stats - Get performance statistics
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Performance stats API error:', error);
+    logApiError(error, {
+      component: 'PerformanceStatsAPI',
+      action: 'fetch_performance_stats',
+      endpoint: '/api/performance/stats',
+      params: { timeRange: request.url, agent: request.url }
+    });
     return NextResponse.json(
       { error: 'Failed to fetch performance stats' },
       { status: 500 }

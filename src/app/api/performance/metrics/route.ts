@@ -86,12 +86,12 @@ function generateMockMetrics(limit: number, timeRange: string, agent: string): P
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const timeRange = searchParams.get('timeRange') || '10m';
-    const agent = searchParams.get('agent') || 'all';
+  const { searchParams } = new URL(request.url);
+  const limit = parseInt(searchParams.get('limit') || '50');
+  const timeRange = searchParams.get('timeRange') || '10m';
+  const agent = searchParams.get('agent') || 'all';
 
+  try {
     // TODO: Replace with actual performance monitoring system
     // For now, return mock data for development
     const metrics = generateMockMetrics(limit, timeRange, agent);
