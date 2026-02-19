@@ -7,7 +7,7 @@
  */
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-type LogContext = Record<string, any>;
+type LogContext = Record<string, unknown>;
 
 interface LogEntry {
   level: LogLevel;
@@ -184,7 +184,7 @@ export const logPerformance = (name: string, startTime: number) => {
   return duration;
 };
 
-export const withLogging = <T extends any[], R>(
+export const withLogging = <T extends unknown[], R>(
   fn: (...args: T) => R | Promise<R>,
   name: string
 ) => {

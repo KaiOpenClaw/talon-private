@@ -13,7 +13,7 @@ interface PerformanceMetric {
   success: boolean;
   error?: string;
   agent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 function generateMockErrors(limit: number): PerformanceMetric[] {

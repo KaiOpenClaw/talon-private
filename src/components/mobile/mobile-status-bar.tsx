@@ -191,7 +191,7 @@ export function useDeviceInfo() {
     const isIOS = /iphone|ipad|ipod/.test(userAgent)
     const isAndroid = /android/.test(userAgent)
     const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                  (navigator as any).standalone === true
+                  (navigator as { standalone?: boolean }).standalone === true
     
     // Detect notch/safe area
     const hasNotch = window.screen.height === 812 || // iPhone X/XS

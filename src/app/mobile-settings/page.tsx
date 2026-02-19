@@ -54,14 +54,14 @@ export default function MobileSettingsPage() {
 
       // Get connection info if available
       if ('connection' in navigator) {
-        const connection = (navigator as any).connection
+        const connection = (navigator as { connection?: { effectiveType: string; downlink?: number } }).connection
         info.connectionType = connection?.effectiveType
       }
 
       // Get battery info if available
       if ('getBattery' in navigator) {
         try {
-          const battery = await (navigator as any).getBattery()
+          const battery = await (navigator as { getBattery: () => Promise<{ level: number; charging: boolean }> }).getBattery()
           info.batteryLevel = Math.round(battery.level * 100)
           info.isCharging = battery.charging
         } catch (error) {

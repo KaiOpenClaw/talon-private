@@ -162,7 +162,18 @@ export async function search(
     
     // Convert to SearchResult format and filter by score
     const searchResults: SearchResult[] = results
-      .map((row: any) => {
+      .map((row: { 
+        document: string; 
+        score: number; 
+        content: string;
+        agentId: string;
+        filePath: string;
+        fileType: string;
+        chunk: number;
+        timestamp: string;
+        _distance: number;
+        id: string;
+      }) => {
         const score = 1 - (row._distance || 0) // Convert distance to similarity score
         return {
           document: {
@@ -231,7 +242,7 @@ export async function indexDocument(doc: Omit<MemoryDocument, 'vector'>): Promis
     
     // Add to table
     const table = await getTable()
-    await table.add([{ ...doc, vector }] as any[])
+    await table.add([{ ...doc, vector }] as Record<string, unknown>[])
     
   } catch (error) {
     throw new Error(`Failed to index document: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -271,7 +282,7 @@ export async function indexDocuments(docs: Omit<MemoryDocument, 'vector'>[]): Pr
 
     // Add to table
     const table = await getTable()
-    await table.add(docsWithVectors as any[])
+    await table.add(docsWithVectors as never[])
     
   } catch (error) {
     throw new Error(`Failed to index documents: ${error instanceof Error ? error.message : 'Unknown error'}`)

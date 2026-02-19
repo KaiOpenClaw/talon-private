@@ -10,7 +10,7 @@ export interface PerformanceMetric {
   success: boolean;
   error?: string;
   agent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PerformanceStats {

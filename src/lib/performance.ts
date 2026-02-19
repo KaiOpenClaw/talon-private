@@ -8,7 +8,7 @@ export interface PerformanceMetric {
   success: boolean;
   error?: string;
   agent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SystemMetrics {
@@ -40,7 +40,7 @@ class PerformanceMonitor {
     operation: string,
     fn: () => Promise<T>,
     agent?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<T> {
     const startTime = Date.now();
     let success = false;
@@ -77,7 +77,7 @@ class PerformanceMonitor {
     success: boolean,
     error?: string,
     agent?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) {
     const metric: PerformanceMetric = {
       timestamp: Date.now(),
@@ -272,7 +272,7 @@ export const trackUserAction = (
   action: string,
   duration: number,
   success = true,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ) => {
   performanceMonitor.trackSync(
     `user:${action}`,

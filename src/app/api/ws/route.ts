@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     
     return new Response(JSON.stringify({
       status: 'websocket-ready',
-      port: (server.address() as any)?.port || 'dynamic',
+      port: (server.address() as { port?: number } | null)?.port || 'dynamic',
       connections: connections.size
     }), {
       status: 200,

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Bell, BellOff, X, CheckCircle, AlertTriangle, Info, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { NotificationMetadata } from '@/lib/types'
 
 export type NotificationPermission = 'default' | 'granted' | 'denied'
 export type NotificationType = 'info' | 'success' | 'warning' | 'error'
@@ -17,7 +18,7 @@ interface PushNotificationConfig {
   tag?: string
   icon?: string
   badge?: string
-  data?: any
+  data?: NotificationMetadata
   requireInteraction?: boolean
   silent?: boolean
 }

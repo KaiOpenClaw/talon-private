@@ -1,0 +1,88 @@
+
+> talon@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env.production
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 53s
+  Running TypeScript ...
+  Collecting page data using 1 worker ...
+{"level":"info","timestamp":"2026-02-19T15:38:47.255Z","message":"Environment configuration validated successfully","context":{"component":"ConfigSystem","action":"configValidation","status":"success"},"source":"talon-web"}
+  Generating static pages using 1 worker (0/39) ...
+  Generating static pages using 1 worker (9/39) 
+  Generating static pages using 1 worker (19/39) 
+  Generating static pages using 1 worker (29/39) 
+✓ Generating static pages using 1 worker (39/39) in 946.3ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /agents
+├ ƒ /api/agents
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/blockers
+├ ƒ /api/channels
+├ ƒ /api/channels/reconnect
+├ ƒ /api/channels/toggle
+├ ƒ /api/cron
+├ ƒ /api/cron/jobs
+├ ƒ /api/cron/run
+├ ƒ /api/cron/status
+├ ƒ /api/cron/toggle
+├ ƒ /api/gateway/config
+├ ƒ /api/gateway/test
+├ ƒ /api/health
+├ ƒ /api/index
+├ ƒ /api/memory
+├ ƒ /api/monitor/health
+├ ƒ /api/notifications/send
+├ ƒ /api/notifications/subscribe
+├ ƒ /api/performance/errors
+├ ƒ /api/performance/metrics
+├ ƒ /api/performance/slowest
+├ ƒ /api/performance/stats
+├ ƒ /api/performance/system
+├ ƒ /api/projects
+├ ƒ /api/search
+├ ƒ /api/search/test
+├ ƒ /api/send
+├ ƒ /api/session/status
+├ ƒ /api/sessions
+├ ƒ /api/sessions/[action]
+├ ƒ /api/sessions/history
+├ ƒ /api/sessions/send
+├ ƒ /api/skills
+├ ƒ /api/skills/install
+├ ƒ /api/spawn
+├ ƒ /api/status
+├ ƒ /api/system/health
+├ ƒ /api/system/stats
+├ ƒ /api/ws
+├ ○ /channels
+├ ○ /command
+├ ○ /cron
+├ ○ /login
+├ ○ /mobile-settings
+├ ○ /performance
+├ ○ /projects
+├ ○ /schedule
+├ ○ /search
+├ ○ /security
+├ ○ /settings
+├ ○ /setup
+├ ○ /skills
+├ ○ /status
+├ ○ /system
+├ ƒ /workspace/[id]
+└ ○ /workspaces
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

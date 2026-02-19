@@ -14,7 +14,7 @@ interface PerformanceMetric {
   success: boolean;
   error?: string;
   agent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 function generateMockMetrics(limit: number, timeRange: string, agent: string): PerformanceMetric[] {

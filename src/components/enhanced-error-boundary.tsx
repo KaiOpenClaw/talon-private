@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react'
 import { logger } from '@/lib/logger'
+import type { ErrorInfo } from '@/lib/types'
 
 interface ErrorBoundaryState {
   hasError: boolean
   error: Error | null
-  errorInfo: any
+  errorInfo: ErrorInfo | null
   retryCount: number
   isRetrying: boolean
 }
@@ -28,7 +29,7 @@ interface ErrorBoundaryProps {
   /** Whether this boundary should catch all errors or just specific types */
   catchAllErrors?: boolean
   /** Callback when error occurs */
-  onError?: (error: Error, errorInfo: any) => void
+  onError?: (error: Error, errorInfo: ErrorInfo | null) => void
 }
 
 /**
@@ -57,7 +58,7 @@ export class EnhancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { component = 'UnknownComponent', maxAutoRetries = 2, onError } = this.props
     
     // Log error with context

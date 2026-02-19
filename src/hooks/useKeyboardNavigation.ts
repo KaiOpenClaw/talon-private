@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export interface KeyboardNavigationOptions {
+export interface KeyboardNavigationOptions<T = unknown> {
   /** Items to navigate through */
-  items: any[];
+  items: T[];
   /** Initial focused index */
   initialIndex?: number;
   /** Loop navigation (wrap around at end/start) */
@@ -10,20 +10,20 @@ export interface KeyboardNavigationOptions {
   /** Enable letter-based jump navigation */
   enableLetterJump?: boolean;
   /** Function to get searchable text for letter jump */
-  getSearchText?: (item: any) => string;
+  getSearchText?: (item: T) => string;
   /** Callback when item is selected */
-  onSelect?: (item: any, index: number) => void;
+  onSelect?: (item: T, index: number) => void;
   /** Callback when focus changes */
-  onFocusChange?: (item: any, index: number) => void;
+  onFocusChange?: (item: T, index: number) => void;
 }
 
-export function useKeyboardNavigation<T>(options: KeyboardNavigationOptions) {
+export function useKeyboardNavigation<T = unknown>(options: KeyboardNavigationOptions<T>) {
   const {
     items,
     initialIndex = 0,
     loop = true,
     enableLetterJump = true,
-    getSearchText = (item: any) => item.name || item.title || String(item),
+    getSearchText = (item: T) => (item as { name?: string; title?: string }).name || (item as { name?: string; title?: string }).title || String(item),
     onSelect,
     onFocusChange
   } = options;

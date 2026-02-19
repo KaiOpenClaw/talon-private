@@ -5,7 +5,7 @@
 
 import { logger, logApiError } from './logger'
 
-interface CacheEntry<T = any> {
+interface CacheEntry<T = unknown> {
   data: T
   timestamp: number
   expiry?: number
@@ -35,7 +35,7 @@ interface NetworkState {
 class OfflineCache {
   private memoryCache = new Map<string, CacheEntry>()
   private networkState: NetworkState = { isOnline: true }
-  private syncQueue: Array<{ key: string; data: any; timestamp: number }> = []
+  private syncQueue: Array<{ key: string; data: unknown; timestamp: number }> = []
   private storagePrefix = 'talon-offline-cache:'
   private maxMemorySize = 50 // Maximum entries in memory
   private maxStorageSize = 200 // Maximum entries in localStorage
@@ -70,15 +70,24 @@ class OfflineCache {
 
     // Monitor connection quality if available
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection
+      const connection = (navigator as { 
+        connection?: { 
+          effectiveType: string; 
+          downlink?: number; 
+          rtt?: number; 
+          addEventListener?: (type: string, listener: () => void) => void 
+        } 
+      }).connection
       
       const updateConnectionInfo = () => {
-        this.networkState.effectiveType = connection.effectiveType
-        this.networkState.downlink = connection.downlink
-        this.networkState.rtt = connection.rtt
+        if (connection) {
+          this.networkState.effectiveType = connection.effectiveType
+          this.networkState.downlink = connection.downlink
+          this.networkState.rtt = connection.rtt
+        }
       }
 
-      connection.addEventListener('change', updateConnectionInfo)
+      connection?.addEventListener?.('change', updateConnectionInfo)
       updateConnectionInfo()
     }
 
@@ -439,7 +448,7 @@ class OfflineCache {
   /**
    * Add item to sync queue for when online
    */
-  addToSyncQueue(key: string, data: any): void {
+  addToSyncQueue(key: string, data: unknown): void {
     this.syncQueue.push({
       key,
       data,

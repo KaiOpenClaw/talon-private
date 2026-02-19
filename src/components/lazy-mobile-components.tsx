@@ -23,8 +23,8 @@ const MobileComponentLoader = ({ height = "h-20" }: { height?: string }) => (
 // Focus is on the bigger bundle optimizations that are actually providing value
 
 /*
-export const LazyMobileShortcuts = (props: any) => ...
-export const LazyAdvancedGestures = (props: any) => ...
+export const LazyMobileShortcuts = (props: LazyComponentProps) => ...
+export const LazyAdvancedGestures = (props: LazyComponentProps) => ...
 ... other wrappers available when needed
 */
 
@@ -34,7 +34,7 @@ export const useMobileComponentLoader = () => {
   
   return {
     isMobile,
-    loadMobileComponent: <T extends ComponentType<any>>(
+    loadMobileComponent: <T extends ComponentType<Record<string, unknown>>>(
       component: () => Promise<{ default: T }>,
       fallback?: ComponentType
     ) => {

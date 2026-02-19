@@ -23,7 +23,7 @@ interface PushNotificationPayload {
   body: string
   type?: 'info' | 'success' | 'warning' | 'error'
   tag?: string
-  data?: any
+  data?: Record<string, unknown>
   requireInteraction?: boolean
 }
 
@@ -55,23 +55,23 @@ export async function POST(request: NextRequest) {
     }
 
     const results = await Promise.allSettled(
-      subscriptions.map(async (subscription: any) => {
+      subscriptions.map(async (subscription: unknown) => {
         try {
           await webpush.sendNotification(
-            subscription,
+            subscription as webpush.PushSubscription,
             JSON.stringify(notificationPayload),
             {
               urgency: 'normal',
               TTL: 24 * 60 * 60, // 24 hours
             }
           )
-          return { success: true, endpoint: subscription.endpoint }
-        } catch (error: any) {
-          console.error(`Failed to send push notification to ${subscription.endpoint}:`, error)
+          return { success: true, endpoint: (subscription as { endpoint?: string }).endpoint }
+        } catch (error: unknown) {
+          console.error(`Failed to send push notification to ${(subscription as { endpoint?: string }).endpoint}:`, error)
           return { 
             success: false, 
-            endpoint: subscription.endpoint, 
-            error: error.message 
+            endpoint: (subscription as { endpoint?: string }).endpoint, 
+            error: error instanceof Error ? error.message : String(error)
           }
         }
       })

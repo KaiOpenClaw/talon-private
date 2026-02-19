@@ -56,8 +56,8 @@ function TouchableBase({
   ...props
 }: TouchableBaseProps & {
   as?: 'button' | 'div' | 'a'
-  onTouchStart?: React.TouchEventHandler<any>
-  onTouchEnd?: React.TouchEventHandler<any>
+  onTouchStart?: React.TouchEventHandler<HTMLElement>
+  onTouchEnd?: React.TouchEventHandler<HTMLElement>
   [key: string]: unknown
 }) {
   const { onTouchStart, onTouchEnd, ...restProps } = props

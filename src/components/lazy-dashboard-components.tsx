@@ -50,7 +50,7 @@ const SessionsLoader = () => (
 // Wrapper components with enhanced suspense fallbacks
 export const LazySemanticSearch = (props: { 
   defaultAgentId?: string
-  onResultClick?: (result: any) => void 
+  onResultClick?: (result: { document: { id: string; agentId: string; filePath: string }; score: number }) => void 
 }) => (
   <Suspense fallback={<SearchLoader />}>
     <SemanticSearch {...props} />

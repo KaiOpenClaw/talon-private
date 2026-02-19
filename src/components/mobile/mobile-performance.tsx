@@ -9,6 +9,27 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Battery, Cpu, Gauge, Smartphone, Zap, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// Browser API interfaces for TypeScript
+interface BatteryManager {
+  level: number
+  charging: boolean
+  chargingTime: number
+  dischargingTime: number
+}
+
+interface MemoryInfo {
+  usedJSHeapSize: number
+  jsHeapSizeLimit: number
+  totalJSHeapSize: number
+}
+
+interface ConnectionInfo {
+  type?: string
+  effectiveType: string
+  downlink?: number
+  rtt?: number
+}
+
 interface MobilePerformanceMetrics {
   batteryLevel?: number
   batteryCharging?: boolean
@@ -48,7 +69,7 @@ export function useMobilePerformance() {
       // Battery API
       try {
         if ('getBattery' in navigator) {
-          const battery = await (navigator as any).getBattery()
+          const battery = await (navigator as { getBattery: () => Promise<BatteryManager> }).getBattery()
           newMetrics.batteryLevel = battery.level * 100
           newMetrics.batteryCharging = battery.charging
           newMetrics.batteryChargingTime = battery.chargingTime
@@ -63,7 +84,7 @@ export function useMobilePerformance() {
 
       // Memory API
       if ('memory' in performance) {
-        const memory = (performance as any).memory
+        const memory = (performance as { memory: MemoryInfo }).memory
         newMetrics.memoryUsage = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100
       }
 
@@ -74,12 +95,12 @@ export function useMobilePerformance() {
 
       // Device memory (Chrome)
       if ('deviceMemory' in navigator) {
-        newMetrics.deviceMemory = (navigator as any).deviceMemory
+        newMetrics.deviceMemory = (navigator as { deviceMemory: number }).deviceMemory
       }
 
       // Network Information API
       if ('connection' in navigator) {
-        const connection = (navigator as any).connection
+        const connection = (navigator as { connection: ConnectionInfo }).connection
         newMetrics.connectionType = connection.type
         newMetrics.connectionSpeed = connection.effectiveType
         newMetrics.effectiveType = connection.effectiveType

@@ -124,8 +124,9 @@ export function BiometricAuthSetup() {
         
         setIsRegistered(true)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to register biometric authentication')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to register biometric authentication'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -167,8 +168,9 @@ export function BiometricAuthSetup() {
       }
 
       return { success: false, error: 'Authentication failed' }
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Biometric authentication failed' }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Biometric authentication failed'
+      return { success: false, error: errorMessage }
     }
   }
 

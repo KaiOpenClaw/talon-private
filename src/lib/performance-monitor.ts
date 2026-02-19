@@ -8,7 +8,7 @@ interface PerformanceMetric {
   success: boolean
   error?: string
   agent?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 interface SystemMetrics {
@@ -169,7 +169,7 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor()
 
 // Middleware function to wrap API routes
-export function withPerformanceMonitoring<T extends any[], R>(
+export function withPerformanceMonitoring<T extends unknown[], R>(
   operation: string,
   handler: (...args: T) => Promise<R>
 ) {

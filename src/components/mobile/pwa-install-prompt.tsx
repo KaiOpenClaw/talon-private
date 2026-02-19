@@ -73,7 +73,7 @@ export function PWAInstallPrompt() {
   // Check if already in standalone mode
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (navigator as any).standalone === true
+                        (navigator as { standalone?: boolean }).standalone === true
     setIsInstalled(isStandalone)
   }, [])
 
@@ -263,7 +263,7 @@ export function usePWAInstall() {
   useEffect(() => {
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (navigator as any).standalone === true
+                        (navigator as { standalone?: boolean }).standalone === true
     setIsInstalled(isStandalone)
 
     // Listen for install availability
