@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSafeApiCall, useComponentError } from '@/hooks/useSafeApiCall'
 import { InlineErrorBoundary } from '@/components/error-boundary'
 import { ErrorState, NetworkErrorState } from '@/components/error-state'
+import { VoiceSearchInput } from '@/components/mobile/voice-search'
+import { useDeviceOptimizations } from '@/components/mobile/mobile-optimized-layout'
 import { 
   Search, Loader2, FileText, FolderOpen, 
   Brain, Users, ChevronRight, X,
@@ -62,6 +64,7 @@ export default function SemanticSearch({
   
   const safeApiCall = useSafeApiCall()
   const { error, handleError, clearError } = useComponentError('SemanticSearch')
+  const device = useDeviceOptimizations()
 
   // Fetch agent list on mount with error handling
   useEffect(() => {
@@ -209,14 +212,18 @@ export default function SemanticSearch({
       {/* Search Input */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
-          <input
-            type="text"
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted z-10 pointer-events-none" />
+          <VoiceSearchInput
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={setQuery}
+            onVoiceComplete={(transcript) => {
+              setQuery(transcript)
+              // Auto-search when voice input is complete
+              setTimeout(handleSearch, 100)
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Search across agent workspaces..."
-            className="w-full pl-10 pr-4 py-3 bg-surface-2 border border-border-default rounded-lg text-sm focus:outline-none focus:border-terminal-500/50"
+            className="pl-10 bg-surface-2 border-border-default focus:border-terminal-500/50"
             autoFocus
           />
         </div>

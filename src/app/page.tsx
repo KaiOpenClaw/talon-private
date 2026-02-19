@@ -79,9 +79,13 @@ export default function Dashboard() {
       <MobileNav
         selectedAgent={selectedAgent}
         onAgentSelect={setSelectedAgent}
-        agents={agents}
-        view={view}
-        onViewChange={setView}
+        agents={agents || []}
+        sessions={sessions || []}
+        blockers={blockers || []}
+        loading={loading}
+        focusedAgentIndex={focusedAgentIndex}
+        onFocusedAgentChange={setFocusedAgentIndex}
+        onKeyNavigation={handleAgentKeyNavigation}
       />
 
       {/* Desktop Sidebar */}
@@ -92,9 +96,9 @@ export default function Dashboard() {
         />
         
         <DashboardStats
-          agentCount={agents.length}
+          agentCount={agents?.length || 0}
           activeSessionCount={activeSessionCount}
-          totalSessions={sessions.length}
+          totalSessions={sessions?.length || 0}
           blockersCount={blockersCount}
         />
 
@@ -104,7 +108,7 @@ export default function Dashboard() {
         />
 
         <AgentList
-          agents={agents}
+          agents={agents || []}
           selectedAgent={selectedAgent}
           focusedAgentIndex={focusedAgentIndex}
           onAgentSelect={setSelectedAgent}
@@ -118,9 +122,13 @@ export default function Dashboard() {
         <PullToRefresh onRefresh={handleRefresh}>
           {view === 'chat' && selectedAgent && (
             <ChatPanel
-              selectedAgent={selectedAgent}
-              onClose={() => setSelectedAgent(null)}
-              className="flex-1"
+              agentId={selectedAgent.id}
+              agentName={selectedAgent.name}
+              agentAvatar={selectedAgent.avatar}
+              onNewSession={() => {
+                // Handle new session creation
+                console.log('Starting new session with', selectedAgent.name)
+              }}
             />
           )}
           
@@ -134,7 +142,7 @@ export default function Dashboard() {
                 <p className="text-ink-muted mb-6 max-w-md">
                   Choose an agent from the sidebar to start a conversation or view their workspace.
                 </p>
-                {agents.length > 0 && (
+                {agents && agents.length > 0 && (
                   <button
                     onClick={() => setSelectedAgent(agents[0])}
                     className="px-6 py-3 bg-terminal-900/30 hover:bg-terminal-900/50 rounded-lg text-terminal-400 transition-colors"
@@ -151,7 +159,7 @@ export default function Dashboard() {
               <div className="max-w-6xl mx-auto">
                 <h1 className="text-2xl font-bold text-ink-base mb-6">Agents</h1>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {agents.map((agent) => (
+                  {(agents || []).map((agent) => (
                     <div
                       key={agent.id}
                       className="bg-surface-1 rounded-lg p-4 hover:bg-surface-2 transition-colors cursor-pointer"
@@ -202,7 +210,7 @@ export default function Dashboard() {
               <div className="max-w-6xl mx-auto">
                 <h1 className="text-2xl font-bold text-ink-base mb-6">Sessions</h1>
                 <div className="space-y-3">
-                  {sessions.map((session) => (
+                  {(sessions || []).map((session) => (
                     <div
                       key={session.key}
                       className="bg-surface-1 rounded-lg p-4 hover:bg-surface-2 transition-colors"
@@ -230,7 +238,7 @@ export default function Dashboard() {
                       )}
                     </div>
                   ))}
-                  {sessions.length === 0 && (
+                  {(!sessions || sessions.length === 0) && (
                     <div className="text-center py-8">
                       <p className="text-ink-muted">No active sessions</p>
                     </div>

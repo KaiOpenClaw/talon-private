@@ -42,10 +42,8 @@ export default function WorkspacePage() {
         {/* Left Sidebar - Channels */}
         <WorkspaceChannels
           workspaceId={workspaceId}
-          selectedChannel={selectedChannel}
-          setSelectedChannel={setSelectedChannel}
-          activePanel={activePanel}
-          setActivePanel={setActivePanel}
+          selectedChannelId={selectedChannel?.id}
+          onSelectChannel={setSelectedChannel}
         />
 
         {/* Main Content */}

@@ -114,6 +114,10 @@ class PerformanceMonitor {
       .slice(0, limit)
   }
 
+  getMetrics(limit?: number): PerformanceMetric[] {
+    return limit ? this.metrics.slice(-limit) : [...this.metrics]
+  }
+
   getSystemMetrics(): SystemMetrics {
     const currentMinute = Math.floor(Date.now() / 60000)
     const requestsThisMinute = this.requestCounts.get(currentMinute) || 0

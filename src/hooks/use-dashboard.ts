@@ -39,14 +39,12 @@ export function useDashboard() {
   // Real-time data hooks
   const {
     data: agents,
-    isLoading: agentsLoading,
-    error: agentsError
+    isConnected: agentsConnected
   } = useRealtimeData<Agent[]>('agents', [])
 
   const {
     data: sessions,
-    isLoading: sessionsLoading,
-    error: sessionsError
+    isConnected: sessionsConnected
   } = useRealtimeData<Session[]>('sessions', [])
 
   // Load initial data and blockers
@@ -54,7 +52,7 @@ export function useDashboard() {
     let mounted = true
 
     async function loadInitialData() {
-      if (agentsLoading || sessionsLoading) return
+      if (!agents || !sessions) return
 
       try {
         const promises = []
@@ -91,11 +89,11 @@ export function useDashboard() {
 
     loadInitialData()
     return () => { mounted = false }
-  }, [agentsLoading, sessionsLoading, agents, selectedAgent])
+  }, [agents, sessions, selectedAgent])
 
   // Keyboard navigation for agents
   const handleAgentKeyNavigation = useCallback((event: React.KeyboardEvent) => {
-    if (agents.length === 0) return
+    if (!agents || agents.length === 0) return
 
     switch (event.key) {
       case 'ArrowDown':
@@ -142,7 +140,7 @@ export function useDashboard() {
 
   // Update focused index when selected agent changes
   useEffect(() => {
-    if (selectedAgent) {
+    if (selectedAgent && agents) {
       const index = agents.findIndex(agent => agent.id === selectedAgent.id)
       if (index !== -1) {
         setFocusedAgentIndex(index)
@@ -158,8 +156,9 @@ export function useDashboard() {
         if (/^[1-9]$/.test(event.key)) {
           event.preventDefault()
           const index = parseInt(event.key) - 1
-          if (agents[index]) {
-            setSelectedAgent(agents[index])
+          const agent = agents?.[index]
+          if (agent) {
+            setSelectedAgent(agent)
             setFocusedAgentIndex(index)
           }
         }
@@ -209,7 +208,7 @@ export function useDashboard() {
     handleRefresh,
     
     // Loading states
-    isLoading: loading || agentsLoading || sessionsLoading,
-    hasErrors: agentsError || sessionsError
+    isLoading: loading || !agentsConnected || !sessionsConnected,
+    hasErrors: !agentsConnected || !sessionsConnected
   }
 }

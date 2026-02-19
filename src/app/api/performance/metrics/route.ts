@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ 
       stats,
-      metrics: performanceMonitor.metrics
+      metrics: performanceMonitor.getMetrics()
         .filter(m => agent === 'all' || m.agent === agent)
         .slice(-limit)
     });

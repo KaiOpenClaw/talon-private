@@ -35,7 +35,7 @@ export function CronDashboard() {
         <NetworkErrorState
           error={error}
           onRetry={fetchJobs}
-          context="cron jobs dashboard"
+          context={{ component: "CronDashboard", action: "fetchJobs" }}
         />
       </div>
     );

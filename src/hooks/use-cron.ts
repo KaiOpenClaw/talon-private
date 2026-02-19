@@ -104,12 +104,11 @@ export function useCron() {
       },
       {
         errorMessage: 'Failed to load cron jobs',
-        component: 'useCron',
-        action: 'fetchJobs'
+        component: 'useCron'
       }
     );
     
-    if (result.success) {
+    if (result.isSuccess) {
       setJobs(result.data.jobs || []);
       setError(null);
     } else {
@@ -136,13 +135,11 @@ export function useCron() {
       },
       {
         errorMessage: 'Failed to run job',
-        component: 'useCron',
-        action: 'runJob',
-        jobId
+        component: 'useCron'
       }
     );
     
-    if (result.success) {
+    if (result.isSuccess) {
       // Refresh jobs list to get updated status
       await fetchJobs();
     }
@@ -166,14 +163,11 @@ export function useCron() {
       },
       {
         errorMessage: `Failed to ${enable ? 'enable' : 'disable'} job`,
-        component: 'useCron',
-        action: 'toggleJob',
-        jobId,
-        enable
+        component: 'useCron'
       }
     );
     
-    if (result.success) {
+    if (result.isSuccess) {
       // Refresh jobs list to get updated status
       await fetchJobs();
     }
