@@ -433,6 +433,20 @@ export interface UserPreferences {
 }
 
 // ============================================================================
+// ERROR HANDLING TYPES
+// ============================================================================
+
+export interface ErrorInfo {
+  componentStack: string;
+}
+
+export interface MemoryInfo {
+  jsHeapSizeLimit: number;
+  totalJSHeapSize: number;
+  usedJSHeapSize: number;
+}
+
+// ============================================================================
 // TYPE GUARDS & UTILITIES
 // ============================================================================
 

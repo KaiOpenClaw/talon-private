@@ -1,0 +1,15 @@
+
+> talon@0.1.0 dev
+> next dev -p 4000 --port 4001
+
+⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::4001
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::4001)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 4001
+}
+[?25h

@@ -14,7 +14,8 @@ import {
   NetworkInfo, 
   DeviceMemoryInfo, 
   PerformanceMetric,
-  BaseComponentProps 
+  BaseComponentProps,
+  MemoryInfo
 } from '@/lib/types'
 
 // Extended browser API interfaces

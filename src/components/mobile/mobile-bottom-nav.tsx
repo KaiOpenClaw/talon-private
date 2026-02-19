@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
   Home, Search, MessageSquare, Calendar, Settings, 
-  Bot, Activity, Zap, Plus, Command
+  Bot, Activity, Zap, Plus, Command, DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TouchButton } from './touch-feedback'
@@ -71,10 +71,10 @@ const defaultNavItems: BottomNavItem[] = [
     showOnMobile: true
   },
   {
-    id: 'more',
-    label: 'More',
-    icon: <Settings className="w-5 h-5" />,
-    href: '/settings',
+    id: 'costs',
+    label: 'Costs',
+    icon: <DollarSign className="w-5 h-5" />,
+    href: '/costs',
     showOnMobile: true
   }
 ]
