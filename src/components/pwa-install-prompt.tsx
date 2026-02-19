@@ -25,7 +25,7 @@ export function PWAInstallPrompt() {
 
     // Detect iOS Safari for manual install instructions
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    const isIOSSafari = isIOS && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userUser)
+    const isIOSSafari = isIOS && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)
     setIsIOSSafari(isIOSSafari)
 
     // Listen for beforeinstallprompt event (Chrome/Edge)

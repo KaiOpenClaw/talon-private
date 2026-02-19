@@ -10,6 +10,7 @@ import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { AgentList } from '@/components/dashboard/agent-list'
 import { useDashboard } from '@/hooks/use-dashboard'
 import { useCommandPalette } from '@/hooks/useCommandPalette'
+import { PWAInstallPrompt } from '@/components/pwa-install-prompt'
 import { Loader2 } from 'lucide-react'
 
 export default function Dashboard() {

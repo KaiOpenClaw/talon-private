@@ -44,6 +44,8 @@ export default function MobileSettingsPage() {
 
   useEffect(() => {
     const getDeviceInfo = async () => {
+      if (typeof window === 'undefined' || typeof navigator === 'undefined') return
+      
       const info: DeviceInfo = {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
@@ -97,7 +99,7 @@ export default function MobileSettingsPage() {
   }
 
   const testHapticFeedback = () => {
-    if ('vibrate' in navigator && preferences.hapticFeedback) {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator && preferences.hapticFeedback) {
       navigator.vibrate([50, 50, 100])
     }
   }
@@ -314,43 +316,43 @@ export default function MobileSettingsPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center justify-between">
                 <span>Service Worker</span>
-                <Badge variant={'serviceWorker' in navigator ? 'default' : 'outline'}>
-                  {'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}
+                <Badge variant={typeof navigator !== 'undefined' && 'serviceWorker' in navigator ? 'default' : 'outline'}>
+                  {typeof navigator !== 'undefined' && 'serviceWorker' in navigator ? 'Supported' : 'Not Supported'}
                 </Badge>
               </div>
 
               <div className="flex items-center justify-between">
                 <span>Push Notifications</span>
-                <Badge variant={'Notification' in window ? 'default' : 'outline'}>
-                  {'Notification' in window ? 'Supported' : 'Not Supported'}
+                <Badge variant={typeof window !== 'undefined' && 'Notification' in window ? 'default' : 'outline'}>
+                  {typeof window !== 'undefined' && 'Notification' in window ? 'Supported' : 'Not Supported'}
                 </Badge>
               </div>
 
               <div className="flex items-center justify-between">
                 <span>Web Authentication</span>
-                <Badge variant={'credentials' in navigator ? 'default' : 'outline'}>
-                  {'credentials' in navigator ? 'Supported' : 'Not Supported'}
+                <Badge variant={typeof navigator !== 'undefined' && 'credentials' in navigator ? 'default' : 'outline'}>
+                  {typeof navigator !== 'undefined' && 'credentials' in navigator ? 'Supported' : 'Not Supported'}
                 </Badge>
               </div>
 
               <div className="flex items-center justify-between">
                 <span>Vibration</span>
-                <Badge variant={'vibrate' in navigator ? 'default' : 'outline'}>
-                  {'vibrate' in navigator ? 'Supported' : 'Not Supported'}
+                <Badge variant={typeof navigator !== 'undefined' && 'vibrate' in navigator ? 'default' : 'outline'}>
+                  {typeof navigator !== 'undefined' && 'vibrate' in navigator ? 'Supported' : 'Not Supported'}
                 </Badge>
               </div>
 
               <div className="flex items-center justify-between">
                 <span>Geolocation</span>
-                <Badge variant={'geolocation' in navigator ? 'default' : 'outline'}>
-                  {'geolocation' in navigator ? 'Supported' : 'Not Supported'}
+                <Badge variant={typeof navigator !== 'undefined' && 'geolocation' in navigator ? 'default' : 'outline'}>
+                  {typeof navigator !== 'undefined' && 'geolocation' in navigator ? 'Supported' : 'Not Supported'}
                 </Badge>
               </div>
 
               <div className="flex items-center justify-between">
                 <span>Battery Status</span>
-                <Badge variant={'getBattery' in navigator ? 'default' : 'outline'}>
-                  {'getBattery' in navigator ? 'Supported' : 'Not Supported'}
+                <Badge variant={typeof navigator !== 'undefined' && 'getBattery' in navigator ? 'default' : 'outline'}>
+                  {typeof navigator !== 'undefined' && 'getBattery' in navigator ? 'Supported' : 'Not Supported'}
                 </Badge>
               </div>
             </div>
