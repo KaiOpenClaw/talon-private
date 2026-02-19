@@ -1,201 +1,270 @@
+'use client'
+
 import React from 'react'
-import { AlertTriangle, RefreshCw, WifiOff, ServerCrash, Bug, Lightbulb } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Home, Wifi, WifiOff, Server, Bug } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+interface ErrorContext {
+  component?: string
+  action?: string
+  endpoint?: string
+  attempts?: number
+  httpStatus?: number
+}
+
 interface ErrorStateProps {
-  error?: Error | string
-  title?: string
-  description?: string
+  error: Error
   onRetry?: () => void
-  onReset?: () => void
-  showDetails?: boolean
+  onGoHome?: () => void
+  context?: ErrorContext
   suggestions?: string[]
-  type?: 'network' | 'server' | 'component' | 'generic'
-  compact?: boolean
+  showDetails?: boolean
+  variant?: 'card' | 'inline' | 'full'
 }
 
 export function ErrorState({
   error,
-  title,
-  description,
   onRetry,
-  onReset,
-  showDetails = false,
+  onGoHome,
+  context = {},
   suggestions = [],
-  type = 'generic',
-  compact = false
+  showDetails = true,
+  variant = 'card'
 }: ErrorStateProps) {
-  const errorMessage = typeof error === 'string' ? error : error?.message || 'An unknown error occurred'
-
-  // Determine icon and styling based on error type
+  const isNetworkError = error.message.toLowerCase().includes('network') ||
+                         error.message.toLowerCase().includes('fetch') ||
+                         error.message.toLowerCase().includes('connection')
+  
+  const isServerError = context.httpStatus && context.httpStatus >= 500
+  
   const getErrorIcon = () => {
-    switch (type) {
-      case 'network':
-        return WifiOff
-      case 'server':
-        return ServerCrash
-      case 'component':
-        return Bug
-      default:
-        return AlertTriangle
-    }
+    if (isNetworkError) return <WifiOff className="h-6 w-6 text-red-500" />
+    if (isServerError) return <Server className="h-6 w-6 text-red-500" />
+    return <AlertTriangle className="h-6 w-6 text-red-500" />
   }
-
+  
   const getErrorTitle = () => {
-    if (title) return title
-    
-    switch (type) {
-      case 'network':
-        return 'Connection Error'
-      case 'server':
-        return 'Server Error'
-      case 'component':
-        return 'Component Error'
-      default:
-        return 'Something went wrong'
-    }
+    if (isNetworkError) return 'Connection Error'
+    if (isServerError) return 'Server Error'
+    return 'Something Went Wrong'
   }
-
+  
   const getErrorDescription = () => {
-    if (description) return description
-    
-    switch (type) {
-      case 'network':
-        return 'Unable to connect to the server. Please check your internet connection.'
-      case 'server':
-        return 'The server encountered an error. Please try again later.'
-      case 'component':
-        return 'This component failed to load. Try refreshing or contact support.'
-      default:
-        return 'An unexpected error occurred. Please try again.'
-    }
+    if (isNetworkError) return 'Unable to connect to the server. Please check your internet connection.'
+    if (isServerError) return 'The server is experiencing issues. Please try again later.'
+    return error.message || 'An unexpected error occurred.'
   }
-
-  const getSuggestions = () => {
-    if (suggestions.length > 0) return suggestions
-    
-    switch (type) {
-      case 'network':
-        return [
-          'Check your internet connection',
-          'Try refreshing the page',
-          'Contact your network administrator if the problem persists'
-        ]
-      case 'server':
-        return [
-          'Try again in a few minutes',
-          'Check the system status page',
-          'Contact support if the problem continues'
-        ]
-      case 'component':
-        return [
-          'Try refreshing the page',
-          'Clear your browser cache',
-          'Report this issue if it continues'
-        ]
-      default:
-        return [
-          'Try refreshing the page',
-          'Contact support if the problem persists'
-        ]
-    }
-  }
-
-  const Icon = getErrorIcon()
-
-  if (compact) {
-    return (
-      <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-        <Icon className="w-5 h-5 text-red-400 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-red-300 truncate">
+  
+  const defaultSuggestions = [
+    ...(isNetworkError ? [
+      'Check your internet connection',
+      'Verify OpenClaw Gateway is running'
+    ] : []),
+    ...(isServerError ? [
+      'Try again in a few minutes',
+      'Contact support if the problem persists'
+    ] : []),
+    'Try refreshing the page',
+    'Go back to the main dashboard'
+  ]
+  
+  const allSuggestions = suggestions.length > 0 ? suggestions : defaultSuggestions
+  
+  const content = (
+    <>
+      <div className="flex items-start space-x-3 mb-4">
+        <div className="flex-shrink-0 p-2 bg-red-50 rounded-lg">
+          {getErrorIcon()}
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-red-900 mb-1">
             {getErrorTitle()}
+          </h3>
+          <p className="text-sm text-red-700">
+            {getErrorDescription()}
           </p>
-          {showDetails && (
-            <p className="text-xs text-red-400 truncate mt-1">
-              {errorMessage}
-            </p>
+          
+          {context.component && (
+            <div className="mt-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+              Component: {context.component}
+              {context.action && ` • Action: ${context.action}`}
+              {context.attempts && context.attempts > 0 && ` • Attempts: ${context.attempts}`}
+            </div>
           )}
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-2 mb-4">
         {onRetry && (
           <Button
             size="sm"
-            variant="outline"
+            variant="default"
             onClick={onRetry}
-            className="shrink-0 border-red-500/30 text-red-300 hover:bg-red-500/10"
+            className="bg-red-600 hover:bg-red-700 text-white"
           >
-            <RefreshCw className="w-3 h-3 mr-1" />
-            Retry
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+            {context.attempts && context.attempts > 0 && ` (${context.attempts + 1})`}
+          </Button>
+        )}
+        
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => window.location.reload()}
+          className="border-red-200 text-red-700 hover:bg-red-50"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Reload Page
+        </Button>
+        
+        {onGoHome ? (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onGoHome}
+            className="border-red-200 text-red-700 hover:bg-red-50"
+          >
+            <Home className="h-4 w-4 mr-2" />
+            Go Home
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.location.href = '/'}
+            className="border-red-200 text-red-700 hover:bg-red-50"
+          >
+            <Home className="h-4 w-4 mr-2" />
+            Dashboard
           </Button>
         )}
       </div>
+
+      {/* Suggestions */}
+      {allSuggestions.length > 0 && (
+        <div className="mb-4">
+          <h4 className="font-medium text-sm text-red-800 mb-2">Try these steps:</h4>
+          <ul className="space-y-1">
+            {allSuggestions.map((suggestion, index) => (
+              <li key={index} className="text-sm text-red-700 flex items-start">
+                <span className="text-red-400 mr-2 mt-1">•</span>
+                <span>{suggestion}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Error Details */}
+      {showDetails && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-red-600 hover:text-red-800 flex items-center">
+            <Bug className="h-3 w-3 mr-1" />
+            Show technical details
+          </summary>
+          <div className="mt-2 p-3 bg-red-50 rounded text-red-800 font-mono">
+            <div><strong>Error:</strong> {error.message}</div>
+            {error.stack && (
+              <div className="mt-1">
+                <strong>Stack:</strong>
+                <pre className="whitespace-pre-wrap text-xs mt-1">
+                  {error.stack.split('\n').slice(0, 5).join('\n')}
+                </pre>
+              </div>
+            )}
+            {context.endpoint && (
+              <div className="mt-1">
+                <strong>Endpoint:</strong> {context.endpoint}
+              </div>
+            )}
+          </div>
+        </details>
+      )}
+    </>
+  )
+  
+  if (variant === 'inline') {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        {content}
+      </div>
     )
   }
-
-  return (
-    <Card className="border-red-500/30 bg-red-500/5">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/20 rounded-lg">
-            <Icon className="w-6 h-6 text-red-400" />
-          </div>
-          <div>
-            <CardTitle className="text-red-300">{getErrorTitle()}</CardTitle>
-            <CardDescription className="text-red-400/80">
-              {getErrorDescription()}
-            </CardDescription>
-          </div>
+  
+  if (variant === 'full') {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white border border-red-200 rounded-lg p-6 shadow-lg">
+          {content}
         </div>
+      </div>
+    )
+  }
+  
+  // Default card variant
+  return (
+    <Card className="border-red-200 bg-red-50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-red-900 flex items-center space-x-2">
+          {getErrorIcon()}
+          <span>{getErrorTitle()}</span>
+        </CardTitle>
+        <CardDescription className="text-red-700">
+          {getErrorDescription()}
+        </CardDescription>
       </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {showDetails && errorMessage && (
-          <div className="p-3 bg-red-500/10 rounded border border-red-500/20">
-            <p className="text-sm font-mono text-red-300 break-words">
-              {errorMessage}
-            </p>
-          </div>
-        )}
-
-        {getSuggestions().length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-yellow-300">
-              <Lightbulb className="w-4 h-4" />
-              Suggestions
-            </div>
-            <ul className="space-y-1">
-              {getSuggestions().map((suggestion, index) => (
-                <li key={index} className="text-sm text-zinc-400 flex items-start gap-2">
-                  <span className="text-yellow-400 mt-1">•</span>
-                  <span>{suggestion}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="flex gap-2 pt-2">
-          {onRetry && (
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2">
+            {onRetry && (
+              <Button
+                size="sm"
+                variant="default"
+                onClick={onRetry}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            )}
+            
             <Button
-              onClick={onRetry}
+              size="sm"
               variant="outline"
-              size="sm"
-              className="border-red-500/30 text-red-300 hover:bg-red-500/10"
+              onClick={() => window.location.reload()}
+              className="border-red-200 text-red-700 hover:bg-red-50"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Try Again
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Reload
             </Button>
+          </div>
+
+          {/* Context Info */}
+          {context.component && (
+            <div className="text-xs text-red-600 bg-red-100 px-3 py-2 rounded">
+              {context.component}
+              {context.action && ` → ${context.action}`}
+              {context.attempts && context.attempts > 0 && ` (attempt ${context.attempts})`}
+            </div>
           )}
-          {onReset && (
-            <Button
-              onClick={onReset}
-              variant="ghost"
-              size="sm"
-              className="text-zinc-400 hover:text-zinc-300"
-            >
-              Reset
-            </Button>
+
+          {/* Suggestions */}
+          {allSuggestions.length > 0 && (
+            <div>
+              <h4 className="font-medium text-sm text-red-800 mb-2">Suggestions:</h4>
+              <ul className="space-y-1 text-sm text-red-700">
+                {allSuggestions.slice(0, 3).map((suggestion, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-red-400 mr-2">•</span>
+                    <span>{suggestion}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </CardContent>
@@ -203,15 +272,51 @@ export function ErrorState({
   )
 }
 
-// Specialized error states for common scenarios
-export function NetworkErrorState(props: Omit<ErrorStateProps, 'type'>) {
-  return <ErrorState {...props} type="network" />
+// Specialized error state components
+export function NetworkErrorState({ error, onRetry, suggestions }: Omit<ErrorStateProps, 'variant'>) {
+  return (
+    <ErrorState
+      error={error}
+      onRetry={onRetry}
+      suggestions={suggestions || [
+        'Check your internet connection',
+        'Verify the server is accessible',
+        'Try again in a few seconds'
+      ]}
+      variant="inline"
+    />
+  )
 }
 
-export function ServerErrorState(props: Omit<ErrorStateProps, 'type'>) {
-  return <ErrorState {...props} type="server" />
+export function ServerErrorState({ error, onRetry, context }: Omit<ErrorStateProps, 'variant'>) {
+  return (
+    <ErrorState
+      error={error}
+      onRetry={onRetry}
+      context={context}
+      suggestions={[
+        'The server is temporarily unavailable',
+        'Try again in a few minutes',
+        'Contact support if this persists'
+      ]}
+      variant="card"
+    />
+  )
 }
 
-export function ComponentErrorState(props: Omit<ErrorStateProps, 'type'>) {
-  return <ErrorState {...props} type="component" />
+export function ComponentErrorState({ error, onRetry, context }: Omit<ErrorStateProps, 'variant'>) {
+  return (
+    <ErrorState
+      error={error}
+      onRetry={onRetry}
+      context={context}
+      suggestions={[
+        'This component failed to load',
+        'Try refreshing or go back to dashboard',
+        'Report this issue if it continues'
+      ]}
+      variant="inline"
+      showDetails={false}
+    />
+  )
 }

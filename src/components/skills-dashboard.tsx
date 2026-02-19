@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, CheckCircle, Download, Package, Search, AlertTriangle } from 'lucide-react';
-import { logApiError } from '@/lib/logger';
+import { AlertCircle, CheckCircle, Download, Package, Search, AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { useSafeApiCall, useComponentError } from '@/hooks/useSafeApiCall';
+import { InlineErrorBoundary } from '@/components/error-boundary';
+import { ErrorState } from '@/components/error-state';
 
 interface Skill {
   name: string;
@@ -22,47 +24,63 @@ export function SkillsDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isStale, setIsStale] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  const safeApiCall = useSafeApiCall();
+  const { error, handleError, clearError } = useComponentError('SkillsDashboard');
 
   useEffect(() => {
     fetchSkills();
   }, []);
 
-  const fetchSkills = async () => {
-    try {
-      const response = await fetch('/api/skills');
-      const data = await response.json();
-      setSkills(data.skills || []);
-    } catch (error) {
-      logApiError(error, {
+  const fetchSkills = useCallback(async () => {
+    setLoading(true);
+    clearError();
+    
+    const result = await safeApiCall(
+      () => fetch('/api/skills').then(res => res.json()),
+      {
         component: 'SkillsDashboard',
-        action: 'fetchSkills',
-        endpoint: '/api/skills'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+        errorMessage: 'Failed to load skills dashboard'
+      }
+    );
 
-  const installSkill = async (skillName: string) => {
-    try {
-      const response = await fetch('/api/skills/install', {
+    if (result.isSuccess && result.data) {
+      setSkills(result.data.skills || []);
+      setIsStale(false);
+      setRetryCount(0);
+    } else if (result.error) {
+      handleError(result.error, false); // Don't show toast, already handled by safeApiCall
+      setIsStale(true);
+    }
+    
+    setLoading(false);
+  }, [safeApiCall, handleError, clearError]);
+
+  const installSkill = useCallback(async (skillName: string) => {
+    const result = await safeApiCall(
+      () => fetch('/api/skills/install', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skill: skillName })
-      });
-      
-      if (response.ok) {
-        fetchSkills(); // Refresh list
-      }
-    } catch (error) {
-      logApiError(error, {
+      }).then(res => res.json()),
+      {
         component: 'SkillsDashboard',
-        action: 'installSkill',
-        skillName: skillName,
-        endpoint: '/api/skills/install'
-      });
+        errorMessage: `Failed to install skill: ${skillName}`
+      }
+    );
+
+    if (result.isSuccess) {
+      // Refresh skills list after successful installation
+      await fetchSkills();
     }
-  };
+  }, [safeApiCall, fetchSkills]);
+
+  const handleRetry = useCallback(() => {
+    setRetryCount(prev => prev + 1);
+    fetchSkills();
+  }, [fetchSkills]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -108,16 +126,73 @@ export function SkillsDashboard() {
     total: skills.length
   };
 
+  // Error state with retry option
+  if (error && !loading) {
+    return (
+      <ErrorState
+        error={error}
+        onRetry={handleRetry}
+        context={{
+          component: 'SkillsDashboard',
+          action: 'loadSkills',
+          attempts: retryCount
+        }}
+        suggestions={[
+          'Check your internet connection',
+          'Verify OpenClaw Gateway is running',
+          'Try refreshing the page'
+        ]}
+      />
+    );
+  }
+
+  // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="animate-pulse space-y-2">
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-muted-foreground">Loading skills...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <InlineErrorBoundary name="Skills Dashboard">
+      <div className="space-y-6">
+        {/* Connection Status Banner */}
+        {isStale && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <WifiOff className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm text-yellow-800">
+                Using cached data - connection issues detected
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRetry}
+              className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
+          </div>
+        )}
       {/* Header Stats */}
       <div className="grid grid-cols-4 gap-4">
         <Card>
@@ -230,11 +305,21 @@ export function SkillsDashboard() {
         ))}
       </div>
       
-      {filteredSkills.length === 0 && (
+      {filteredSkills.length === 0 && !loading && (
         <div className="text-center py-8 text-muted-foreground">
-          No skills found matching your criteria.
+          <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <p>No skills found matching your criteria.</p>
+          <Button
+            variant="outline"
+            onClick={handleRetry}
+            className="mt-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Skills
+          </Button>
         </div>
       )}
-    </div>
+      </div>
+    </InlineErrorBoundary>
   );
 }

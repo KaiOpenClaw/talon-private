@@ -251,7 +251,6 @@ export function CronDashboard() {
         <div className="space-y-4">
           <NetworkErrorState
             error={error}
-            title="Failed to load cron jobs"
             onRetry={fetchJobs}
             suggestions={[
               'Check if the OpenClaw Gateway is running',
