@@ -1,0 +1,910 @@
+[
+  {
+    "state": "CLOSED",
+    "count": 16,
+    "issues": [
+      {
+        "number": 198,
+        "title": "🐛 HIGH: Replace 27 'any' Types with Proper TypeScript Interfaces",
+        "labels": [
+          "bug",
+          "priority: high",
+          "frontend"
+        ]
+      },
+      {
+        "number": 197,
+        "title": "🚨 CRITICAL: Complete Infrastructure Outage - Render Deployment Down (All Endpoints 404)",
+        "labels": [
+          "bug",
+          "priority: critical",
+          "deployment",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 192,
+        "title": "Blog Post: Talon vs Discord - Why Developers Need a Better AI Agent Dashboard",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 191,
+        "title": "🔧 CRITICAL: Fix Next.js Middleware Deprecation Warning - Blocking Production",
+        "labels": []
+      },
+      {
+        "number": 176,
+        "title": "LOW: Finalize Code Quality - Remaining Console Statements and TypeScript Types",
+        "labels": [
+          "bug",
+          "enhancement",
+          "priority: low"
+        ]
+      },
+      {
+        "number": 172,
+        "title": "CRITICAL: Bundle Size Optimization - Large Component Files Impact Performance",
+        "labels": [
+          "priority: high",
+          "performance"
+        ]
+      },
+      {
+        "number": 167,
+        "title": "Blog Post: Complete Guide to Building OpenClaw Dashboards",
+        "labels": [
+          "content"
+        ]
+      },
+      {
+        "number": 160,
+        "title": "🎬 CRITICAL: Create Missing Demo GIF for README Hero Section",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 154,
+        "title": "📚 Documentation: Complete API Reference & Developer Guide",
+        "labels": [
+          "documentation",
+          "content",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 148,
+        "title": "🚨 CRITICAL: Build Failure Causing 404 Deployment Issues",
+        "labels": [
+          "priority: critical",
+          "deployment",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 140,
+        "title": "Blog Post: Getting Started with Talon - OpenClaw Dashboard Tutorial",
+        "labels": [
+          "documentation",
+          "content"
+        ]
+      },
+      {
+        "number": 136,
+        "title": "⚡ MEDIUM: Bundle Size Optimization - Large JavaScript Chunks Impact Performance",
+        "labels": [
+          "priority: medium",
+          "performance"
+        ]
+      },
+      {
+        "number": 134,
+        "title": "🔧 MEDIUM: Replace Console Statements with Structured Logging (30 remaining)",
+        "labels": [
+          "priority: medium",
+          "performance"
+        ]
+      },
+      {
+        "number": 133,
+        "title": "🔥 CRITICAL: TypeScript Build Error - Undefined agentId Variable",
+        "labels": [
+          "bug",
+          "priority: critical"
+        ]
+      },
+      {
+        "number": 126,
+        "title": "🚨 CRITICAL: Complete Service Outage - All Endpoints Returning 404",
+        "labels": [
+          "priority: critical",
+          "deployment",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 124,
+        "title": "🔐 SECURITY: Environment Variable Exposure and Validation",
+        "labels": [
+          "priority: high",
+          "security"
+        ]
+      }
+    ]
+  },
+  {
+    "state": "OPEN",
+    "count": 84,
+    "issues": [
+      {
+        "number": 223,
+        "title": "📢 Asset Distribution & Promotion Campaign - Post-Production",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium",
+          "growth"
+        ]
+      },
+      {
+        "number": 222,
+        "title": "🎨 Create Feature Interaction GIFs for README & Social Media",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 221,
+        "title": "🎥 CRITICAL: Create 60-Second Hero Demo Video for Product Hunt Launch",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: critical"
+        ]
+      },
+      {
+        "number": 220,
+        "title": "Feature: Cost Tracking Dashboard & Analytics",
+        "labels": [
+          "enhancement",
+          "frontend",
+          "analytics",
+          "metrics"
+        ]
+      },
+      {
+        "number": 219,
+        "title": "Feature: Multi-Gateway Support & Distributed Agent Management",
+        "labels": [
+          "enhancement",
+          "backend",
+          "epic",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 218,
+        "title": "Feature: Advanced Role-Based Access Control (RBAC)",
+        "labels": [
+          "enhancement",
+          "backend",
+          "security",
+          "epic"
+        ]
+      },
+      {
+        "number": 217,
+        "title": "Feature: Mobile-Responsive Design & Touch Optimizations",
+        "labels": [
+          "enhancement",
+          "frontend",
+          "epic",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 216,
+        "title": "🏆 ENTERPRISE LAUNCH INITIATIVE - v1.0.0 Production Release Coordination",
+        "labels": [
+          "priority: critical",
+          "epic"
+        ]
+      },
+      {
+        "number": 215,
+        "title": "📊 PROJECT HEALTH SUMMARY - February 19, 2026 (4:39 PM UTC)",
+        "labels": [
+          "documentation",
+          "priority: high",
+          "epic"
+        ]
+      },
+      {
+        "number": 214,
+        "title": "🚀 PROGRESS: Console Statements Replacement - 11 Files Remaining",
+        "labels": [
+          "enhancement",
+          "priority: low"
+        ]
+      },
+      {
+        "number": 213,
+        "title": "🔧 HIGH: Complete TypeScript Type Safety - Replace Remaining 'any' Types",
+        "labels": [
+          "enhancement",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 212,
+        "title": "🚨 INFRASTRUCTURE MONITOR: Multiple Critical Service Failures Detected (Feb 19, 4:30 PM UTC)",
+        "labels": [
+          "priority: critical",
+          "deployment",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 211,
+        "title": "🤝 AI Community Partnership & Integration Program",
+        "labels": [
+          "priority: medium",
+          "growth",
+          "community"
+        ]
+      },
+      {
+        "number": 210,
+        "title": "📝 Technical Content Marketing Campaign - Blog Posts + Demo Videos",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high",
+          "growth"
+        ]
+      },
+      {
+        "number": 209,
+        "title": "🚀 CRITICAL: Social Media Launch Campaign - Twitter/X + Community Outreach",
+        "labels": [
+          "marketing",
+          "priority: critical",
+          "growth"
+        ]
+      },
+      {
+        "number": 208,
+        "title": "📊 PROJECT HEALTH REPORT - GitHub Organization Complete (February 19, 2026)",
+        "labels": [
+          "documentation",
+          "priority: high",
+          "epic"
+        ]
+      },
+      {
+        "number": 207,
+        "title": "🏆 Production Release Milestone - v1.0.0 Enterprise Ready",
+        "labels": [
+          "priority: critical",
+          "security",
+          "epic"
+        ]
+      },
+      {
+        "number": 206,
+        "title": "📈 Growth & Community Milestone - v0.7.0 Marketing & Adoption",
+        "labels": [
+          "marketing",
+          "priority: high",
+          "epic",
+          "growth"
+        ]
+      },
+      {
+        "number": 205,
+        "title": "🚀 Beta Release Milestone - v0.9.0 Feature Complete Testing",
+        "labels": [
+          "priority: high",
+          "epic"
+        ]
+      },
+      {
+        "number": 204,
+        "title": "🎯 Alpha Release Milestone - v0.8.0 Core Features & Deployment",
+        "labels": [
+          "priority: critical",
+          "epic"
+        ]
+      },
+      {
+        "number": 203,
+        "title": "📋 LOW: Finalize Structured Logging - 10 Console Statements Remaining",
+        "labels": [
+          "enhancement",
+          "priority: low"
+        ]
+      },
+      {
+        "number": 202,
+        "title": "⚡ MEDIUM: Build Performance Optimization - 98 Second Build Time",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "performance"
+        ]
+      },
+      {
+        "number": 201,
+        "title": "📦 MEDIUM: Update 9 Outdated Dependencies - React 19 & Tailwind 4 Major Updates",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "security"
+        ]
+      },
+      {
+        "number": 200,
+        "title": "♿ MEDIUM: Accessibility Improvements - Missing Alt Attributes and ARIA Labels",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 199,
+        "title": "🚀 MEDIUM: Bundle Size Optimization - Large Component Files (500+ lines)",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "performance"
+        ]
+      },
+      {
+        "number": 196,
+        "title": "Blog Post Assets: Screenshots and Demo GIFs for Talon vs Discord Article",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 195,
+        "title": "Video Content: Demo Updates and Tutorial Series",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 194,
+        "title": "Documentation: Comprehensive User Guide and API Reference",
+        "labels": [
+          "documentation",
+          "content",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 193,
+        "title": "Social Media Campaign: 7-Day Talon Feature Showcase",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high",
+          "growth"
+        ]
+      },
+      {
+        "number": 190,
+        "title": "🤝 STRATEGIC: Partnership & Integration Strategy - Ecosystem Expansion",
+        "labels": [
+          "priority: high",
+          "growth",
+          "strategy",
+          "competitive"
+        ]
+      },
+      {
+        "number": 189,
+        "title": "🛡️ STRATEGIC: Enterprise Security Suite - Market Differentiation Opportunity",
+        "labels": [
+          "priority: high",
+          "security",
+          "epic",
+          "strategy",
+          "competitive"
+        ]
+      },
+      {
+        "number": 188,
+        "title": "🤝 STRATEGIC: Multi-Agent Coordination Features - Address 2026 Trend",
+        "labels": [
+          "enhancement",
+          "priority: high",
+          "epic",
+          "strategy",
+          "competitive"
+        ]
+      },
+      {
+        "number": 187,
+        "title": "💎 STRATEGIC: Premium Dashboard Positioning vs 9 Dashboard Competitors",
+        "labels": [
+          "marketing",
+          "priority: high",
+          "strategy",
+          "competitive"
+        ]
+      },
+      {
+        "number": 186,
+        "title": "🏆 STRATEGIC: Vector Database Failover Strategy - LanceDB Production Alternatives",
+        "labels": [
+          "priority: high",
+          "backend",
+          "infrastructure",
+          "strategy",
+          "competitive"
+        ]
+      },
+      {
+        "number": 185,
+        "title": "💰 ROADMAP: Cost Tracking Dashboard & Resource Management",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "backend",
+          "epic",
+          "analytics"
+        ]
+      },
+      {
+        "number": 184,
+        "title": "🌐 ROADMAP: Multi-Gateway Support & Federation",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "backend",
+          "epic",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 183,
+        "title": "🔐 ROADMAP: Advanced Role-Based Access Control System",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "backend",
+          "security",
+          "epic"
+        ]
+      },
+      {
+        "number": 182,
+        "title": "🚀 ROADMAP: Mobile-First Responsive Design Optimization",
+        "labels": [
+          "enhancement",
+          "priority: high",
+          "epic",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 181,
+        "title": "🤝 MEDIUM: AI Community Partnership & Integration Strategy",
+        "labels": [
+          "marketing",
+          "growth"
+        ]
+      },
+      {
+        "number": 180,
+        "title": "📚 HIGH: Technical Content Marketing Blitz - Thought Leadership Campaign",
+        "labels": [
+          "content",
+          "marketing",
+          "growth"
+        ]
+      },
+      {
+        "number": 179,
+        "title": "🎯 HIGH: README Hero Optimization - 3x Conversion Rate Improvement",
+        "labels": [
+          "documentation",
+          "marketing",
+          "growth"
+        ]
+      },
+      {
+        "number": 178,
+        "title": "🔥 CRITICAL: Social Media Launch Campaign - @TalonDashboard Creation & Announcement",
+        "labels": [
+          "marketing",
+          "growth"
+        ]
+      },
+      {
+        "number": 177,
+        "title": "🎯 Community Feedback: Simplify Dashboard - Address 'Over-engineered' Concerns",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 175,
+        "title": "MEDIUM: Implement Real Performance Monitoring System",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "backend",
+          "performance"
+        ]
+      },
+      {
+        "number": 174,
+        "title": "MEDIUM: Accessibility Improvements - Missing Alt Attributes and ARIA Labels",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 173,
+        "title": "HIGH: Update Outdated Dependencies - Security and Performance Impact",
+        "labels": [
+          "priority: high",
+          "security"
+        ]
+      },
+      {
+        "number": 171,
+        "title": "Blog Post Promotion: Screenshots & Social Media Campaign",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 170,
+        "title": "Video Content: Talon Dashboard Demo & Tutorial Series",
+        "labels": [
+          "content",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 169,
+        "title": "Documentation: API Reference & Developer Guide",
+        "labels": [
+          "documentation"
+        ]
+      },
+      {
+        "number": 168,
+        "title": "Social Media Campaign: OpenClaw Dashboard Launch",
+        "labels": [
+          "marketing",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 166,
+        "title": "⚠️ DEGRADED: Search Infrastructure Complete Failure - LanceDB Unavailable on All Deployments",
+        "labels": [
+          "bug",
+          "priority: high",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 165,
+        "title": "📢 Asset Distribution & Marketing Campaign Execution",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 164,
+        "title": "🏆 Product Hunt Launch: Refresh Marketing Assets & Gallery",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 163,
+        "title": "🚀 Social Media Campaign Launch - Demo Assets Ready",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 162,
+        "title": "🎥 Talon Demo Video Series Production",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 161,
+        "title": "📸 Update Screenshots for Tutorial Blog Post & Marketing",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 159,
+        "title": "💰 Cost Tracking Dashboard - Token Usage & Billing Analytics",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "analytics"
+        ]
+      },
+      {
+        "number": 158,
+        "title": "🔐 Advanced Role-Based Access Control - Fine-Grained Permissions",
+        "labels": [
+          "enhancement",
+          "priority: high",
+          "security"
+        ]
+      },
+      {
+        "number": 157,
+        "title": "🔗 Multi-Gateway Support - Connect Multiple OpenClaw Instances",
+        "labels": [
+          "enhancement",
+          "priority: high",
+          "backend"
+        ]
+      },
+      {
+        "number": 156,
+        "title": "📱 Mobile Optimization Suite - Touch-Friendly UI & Responsive Design",
+        "labels": [
+          "enhancement",
+          "priority: high",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 155,
+        "title": "🚨 PRODUCTION OUTAGE: Complete Service Failure - All API Endpoints Return 404",
+        "labels": [
+          "priority: critical",
+          "deployment",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 153,
+        "title": "📊 PROJECT HEALTH REPORT - February 19, 2026",
+        "labels": [
+          "documentation",
+          "priority: high",
+          "epic"
+        ]
+      },
+      {
+        "number": 152,
+        "title": "🎯 v0.8.0 ALPHA RELEASE - Deployment & Core Features Milestone",
+        "labels": [
+          "priority: critical",
+          "epic"
+        ]
+      },
+      {
+        "number": 151,
+        "title": "🧹 LOW: Remove Unused Dependencies - Bundle Size & Security Cleanup",
+        "labels": [
+          "priority: low",
+          "performance"
+        ]
+      },
+      {
+        "number": 150,
+        "title": "♿ MEDIUM: Accessibility Improvements - Missing ARIA Labels and Semantic HTML",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "ui/ux"
+        ]
+      },
+      {
+        "number": 149,
+        "title": "🔍 MEDIUM: Code Quality Analysis - Multiple TODO Comments Need Resolution",
+        "labels": [
+          "enhancement",
+          "priority: medium",
+          "performance"
+        ]
+      },
+      {
+        "number": 147,
+        "title": "🎨 README HERO: Add Demo GIF & Optimize Conversion Rate",
+        "labels": [
+          "documentation",
+          "marketing",
+          "priority: high",
+          "growth"
+        ]
+      },
+      {
+        "number": 146,
+        "title": "📈 ANALYTICS INFRASTRUCTURE: Website & Social Media Tracking Setup",
+        "labels": [
+          "priority: medium",
+          "analytics",
+          "metrics",
+          "infrastructure"
+        ]
+      },
+      {
+        "number": 145,
+        "title": "📊 ANALYTICS: Daily Growth Metrics Dashboard & Tracking System",
+        "labels": [
+          "priority: medium",
+          "analytics",
+          "metrics",
+          "growth"
+        ]
+      },
+      {
+        "number": 144,
+        "title": "Create Marketing Assets: Screenshots for Talon Tutorial Blog Post",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 143,
+        "title": "Video Content: Talon Demo Series and Product Showcases",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 142,
+        "title": "Documentation Improvements: API Reference and Developer Guide",
+        "labels": [
+          "documentation",
+          "content",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 141,
+        "title": "Social Media Campaign: Talon Feature Spotlight Series",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 139,
+        "title": "🚨 CRITICAL: Complete Infrastructure Outage - Render Deployment & Build Failures",
+        "labels": [
+          "priority: critical"
+        ]
+      },
+      {
+        "number": 138,
+        "title": "⚠️ LOW: Fix Next.js Middleware Deprecation Warning",
+        "labels": [
+          "priority: low"
+        ]
+      },
+      {
+        "number": 137,
+        "title": "🔄 LOW: Update Outdated Dependencies (10 packages)",
+        "labels": [
+          "priority: low"
+        ]
+      },
+      {
+        "number": 135,
+        "title": "📘 MEDIUM: Replace 'any' Types with Proper TypeScript Interfaces (10 remaining)",
+        "labels": [
+          "enhancement",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 132,
+        "title": "Documentation Enhancement: Interactive Tutorials and Code Examples",
+        "labels": [
+          "documentation",
+          "content",
+          "priority: high"
+        ]
+      },
+      {
+        "number": 131,
+        "title": "Social Media Campaign: OpenClaw Developer Tutorial Series",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: medium"
+        ]
+      },
+      {
+        "number": 130,
+        "title": "Content Distribution: Publish Blog Series to Dev.to and Medium",
+        "labels": [
+          "content",
+          "marketing"
+        ]
+      },
+      {
+        "number": 129,
+        "title": "🚀 v0.9.0 BETA MILESTONE SUMMARY - Feature Complete",
+        "labels": [
+          "enhancement",
+          "priority: high",
+          "epic"
+        ]
+      },
+      {
+        "number": 128,
+        "title": "🎯 v0.8.0 ALPHA MILESTONE SUMMARY - Deployment Ready",
+        "labels": [
+          "priority: critical",
+          "deployment",
+          "epic"
+        ]
+      },
+      {
+        "number": 127,
+        "title": "🏥 PROJECT HEALTH REPORT - February 19, 2026",
+        "labels": [
+          "documentation",
+          "priority: high",
+          "epic"
+        ]
+      },
+      {
+        "number": 125,
+        "title": "📝 IMMEDIATE: Write & Publish 'From Discord to Dashboard' Blog Post",
+        "labels": [
+          "content",
+          "marketing",
+          "priority: high"
+        ]
+      }
+    ]
+  }
+]
