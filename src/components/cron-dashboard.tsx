@@ -47,7 +47,7 @@ export function CronDashboard() {
   const [frequencyFilter, setFrequencyFilter] = useState('all');
 
   // Error handling hooks
-  const { safeApiCallWithRetry, safeApiCall } = useSafeApiCall();
+  const safeApiCall = useSafeApiCall();
   const { handleError } = useComponentError('CronDashboard');
 
   // Filter jobs for display
@@ -87,7 +87,7 @@ export function CronDashboard() {
     setLoading(true);
     setError(null);
     
-    const result = await safeApiCallWithRetry(
+    const result = await safeApiCall(
       async () => {
         const response = await fetch('/api/cron');
         if (!response.ok) {
@@ -95,10 +95,13 @@ export function CronDashboard() {
         }
         return response.json();
       },
-      'Failed to load cron jobs'
+      {
+        errorMessage: 'Failed to load cron jobs',
+        component: 'CronDashboard'
+      }
     );
 
-    if (result.success && result.data) {
+    if (result.isSuccess && result.data) {
       setJobs(result.data.jobs || []);
       setError(null);
     } else {
@@ -107,7 +110,7 @@ export function CronDashboard() {
     }
     
     setLoading(false);
-  }, [safeApiCallWithRetry]);
+  }, [safeApiCall]);
 
   const runJob = useCallback(async (jobId: string) => {
     const job = jobs.find(j => j.id === jobId);
@@ -129,18 +132,11 @@ export function CronDashboard() {
       },
       {
         errorMessage: `Failed to run job "${jobName}"`,
-        onError: (error) => {
-          logger.error('Failed to run cron job', {
-            component: 'CronDashboard.runJob',
-            jobId,
-            jobName,
-            error: error.message
-          });
-        }
+        component: 'CronDashboard.runJob'
       }
     );
 
-    if (result.success) {
+    if (result.isSuccess) {
       // Show success feedback and refresh
       fetchJobs();
     }

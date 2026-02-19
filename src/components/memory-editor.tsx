@@ -30,7 +30,7 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
   const [error, setError] = useState<Error | null>(null)
 
   // Error handling hooks
-  const { safeApiCallWithRetry, safeApiCall } = useSafeApiCall()
+  const safeApiCall = useSafeApiCall()
   const { handleError } = useComponentError('MemoryEditor')
 
   // Load file list
@@ -39,7 +39,7 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
     setError(null)
     const startTime = Date.now()
 
-    const result = await safeApiCallWithRetry(
+    const result = await safeApiCall(
       async () => {
         logger.debug('Loading memory files', { agentId })
         const res = await fetch(`/api/memory?agentId=${encodeURIComponent(agentId)}`)
@@ -48,10 +48,13 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
         }
         return res.json()
       },
-      `Failed to load memory files for agent "${agentId}"`
+      {
+        errorMessage: `Failed to load memory files for agent "${agentId}"`,
+        component: 'MemoryEditor'
+      }
     )
 
-    if (result.success && result.data) {
+    if (result.isSuccess && result.data) {
       setFiles(result.data.files || [])
       // Auto-select MEMORY.md if exists
       const memoryFile = result.data.files?.find((f: MemoryFile) => f.name === 'MEMORY.md')
@@ -71,7 +74,7 @@ export default function MemoryEditor({ agentId, onClose }: MemoryEditorProps) {
     }
     
     setLoading(false)
-  }, [agentId, safeApiCallWithRetry, selectedFile])
+  }, [agentId, safeApiCall, selectedFile])
 
   useEffect(() => {
     loadFiles()

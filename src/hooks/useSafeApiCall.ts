@@ -190,3 +190,44 @@ export function useApiState<T>(
     refresh: executeCall
   }
 }
+
+/**
+ * Hook for component-level error handling
+ * Provides standardized error state management for components
+ */
+export function useComponentError(componentName: string = 'Component') {
+  const [error, setError] = useState<Error | null>(null)
+  const { toast } = useToast()
+
+  const handleError = useCallback((error: Error | string, showToast: boolean = true) => {
+    const errorObj = error instanceof Error ? error : new Error(String(error))
+    
+    setError(errorObj)
+    
+    logger.error('Component error occurred', {
+      component: componentName,
+      action: 'componentError',
+      error: errorObj.message,
+      stack: errorObj.stack
+    })
+    
+    if (showToast) {
+      toast({
+        title: 'Component Error',
+        description: `${componentName}: ${errorObj.message}`,
+        variant: 'destructive',
+      })
+    }
+  }, [componentName, toast])
+
+  const clearError = useCallback(() => {
+    setError(null)
+  }, [])
+
+  return {
+    error,
+    handleError,
+    clearError,
+    hasError: error !== null
+  }
+}

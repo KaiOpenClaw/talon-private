@@ -11,7 +11,7 @@ export function AuthStatus() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
-  const { safeApiCall } = useSafeApiCall();
+  const safeApiCall = useSafeApiCall();
   
   async function handleLogout() {
     setLoading(true);
@@ -27,20 +27,15 @@ export function AuthStatus() {
       },
       {
         errorMessage: 'Failed to logout',
-        onError: (error) => {
-          setLogoutError('Logout failed. Please try again.');
-          logger.error('Logout failed in AuthStatus', {
-            component: 'AuthStatus',
-            action: 'handleLogout',
-            error: error.message
-          });
-        }
+        component: 'AuthStatus',
       }
     );
 
-    if (result.success) {
+    if (result.isSuccess) {
       router.push('/login');
       router.refresh();
+    } else {
+      setLogoutError('Logout failed. Please try again.');
     }
     
     setLoading(false);

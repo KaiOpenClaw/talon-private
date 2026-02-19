@@ -118,7 +118,7 @@ export default function SessionsList({ onSelectSession, selectedSessionKey }: Se
             <MessageSquare className="w-4 h-4 text-blue-400" />
             <span className="font-medium">Active Sessions</span>
             {error && retryCount > 0 && (
-              <WifiOff className="w-4 h-4 text-red-400" title="Connection issues" />
+              <WifiOff className="w-4 h-4 text-red-400" />
             )}
             <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
               {sessions.length}
