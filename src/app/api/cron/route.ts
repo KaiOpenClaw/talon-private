@@ -7,7 +7,12 @@ import { env } from '@/lib/config'
 interface RawCronJob {
   id: string
   name: string
-  schedule: any
+  schedule: {
+    kind: 'at' | 'every' | 'cron'
+    expr?: string
+    everyMs?: number
+    at?: string
+  }
   nextRun?: string
   next?: string
   lastRun?: string

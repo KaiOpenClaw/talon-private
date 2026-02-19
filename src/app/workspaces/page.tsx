@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { logger } from '@/lib/logger'
+import { Session } from '@/types'
 import { 
   FolderOpen, ChevronLeft, Plus, Search, 
   Loader2, Clock, FileText, Zap, Users,
@@ -41,7 +42,7 @@ export default function WorkspacesPage() {
         
         // Merge session data into workspaces
         const workspacesWithSessions = (agentsData.agents || []).map((ws: Workspace) => {
-          const wsSessions = sessionsData.sessions?.filter((s: any) => s.agentId === ws.id) || []
+          const wsSessions = sessionsData.sessions?.filter((s: Session) => s.agentId === ws.id) || []
           return {
             ...ws,
             status: wsSessions.length > 0 ? 'online' : ws.status,

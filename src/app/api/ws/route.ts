@@ -15,7 +15,7 @@ const connections = new Set<WebSocket>()
 
 interface WebSocketMessage {
   type: 'sessions' | 'agents' | 'cron' | 'chat' | 'status'
-  data?: any
+  data?: unknown
   timestamp: number
 }
 

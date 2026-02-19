@@ -8,6 +8,11 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import { logger, logApiError } from '@/lib/logger'
 
+interface SessionTokenData {
+  inputTokens?: number
+  outputTokens?: number
+}
+
 const execAsync = promisify(exec)
 
 export const dynamic = 'force-dynamic'
@@ -51,8 +56,8 @@ export async function GET(request: NextRequest) {
     const status = {
       model: result.agents?.[0]?.model || 'claude-opus-4-5',
       tokens: {
-        input: result.sessions?.reduce((acc: number, s: any) => acc + (s.inputTokens || 0), 0) || 0,
-        output: result.sessions?.reduce((acc: number, s: any) => acc + (s.outputTokens || 0), 0) || 0
+        input: result.sessions?.reduce((acc: number, s: SessionTokenData) => acc + (s.inputTokens || 0), 0) || 0,
+        output: result.sessions?.reduce((acc: number, s: SessionTokenData) => acc + (s.outputTokens || 0), 0) || 0
       },
       cost: undefined, // Not available in current status
       elapsed: result.uptime || '0s'
