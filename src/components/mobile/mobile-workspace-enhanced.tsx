@@ -13,6 +13,7 @@ import LongPressContextMenu from './long-press-context-menu';
 import PullToRefresh from './pull-to-refresh';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useHapticFeedback } from '@/hooks/use-haptic-feedback';
+import { logger } from '@/lib/logger';
 import { Message } from './workspace/mobile-workspace-types';
 
 interface Agent {
@@ -58,7 +59,7 @@ export default function MobileWorkspaceEnhanced({
       action: () => {
         // Copy message to clipboard
         hapticTrigger('selection');
-        console.log('Copy message:', messageId);
+        logger.info('Message copied to clipboard', { messageId, action: 'copy_message' });
       }
     },
     {
@@ -68,7 +69,7 @@ export default function MobileWorkspaceEnhanced({
       action: () => {
         // Share message
         hapticTrigger('selection');
-        console.log('Share message:', messageId);
+        logger.info('Message shared', { messageId, action: 'share_message' });
       }
     },
     ...(isOwn ? [
@@ -79,7 +80,7 @@ export default function MobileWorkspaceEnhanced({
         action: () => {
           // Edit message
           hapticTrigger('selection');
-          console.log('Edit message:', messageId);
+          logger.info('Message edited', { messageId, action: 'edit_message' });
         }
       }
     ] : []),
@@ -90,7 +91,7 @@ export default function MobileWorkspaceEnhanced({
       action: () => {
         // Archive message
         hapticTrigger('medium');
-        console.log('Archive message:', messageId);
+        logger.info('Message archived', { messageId, action: 'archive_message' });
       }
     },
     ...(isOwn ? [
@@ -102,7 +103,7 @@ export default function MobileWorkspaceEnhanced({
         action: () => {
           // Delete message with confirmation
           hapticTrigger('heavy');
-          console.log('Delete message:', messageId);
+          logger.warn('Message deleted', { messageId, action: 'delete_message' });
         }
       }
     ] : [])
@@ -116,7 +117,7 @@ export default function MobileWorkspaceEnhanced({
       icon: <RefreshCw className="w-5 h-5" />,
       action: () => {
         hapticTrigger('medium');
-        console.log('Refresh agent:', agentId);
+        logger.info('Agent refreshed', { agentId, action: 'refresh_agent' });
       }
     },
     {
@@ -125,7 +126,7 @@ export default function MobileWorkspaceEnhanced({
       icon: <Settings className="w-5 h-5" />,
       action: () => {
         hapticTrigger('selection');
-        console.log('Agent settings:', agentId);
+        logger.info('Agent settings opened', { agentId, action: 'open_agent_settings' });
       }
     }
   ], [hapticTrigger]);

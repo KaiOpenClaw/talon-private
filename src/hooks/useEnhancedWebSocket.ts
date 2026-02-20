@@ -38,7 +38,7 @@ export function useEnhancedWebSocket(
 ): EnhancedWebSocketState & {
   subscribe: (newSubscription: Partial<WebSocketSubscription>) => void
   reconnect: () => void
-  sendMessage: (message: any) => boolean
+  sendMessage: (message: unknown) => boolean
 } {
   const ws = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<NodeJS.Timeout | null>(null)
@@ -278,7 +278,7 @@ export function useEnhancedWebSocket(
     }
   }, [])
 
-  const sendMessage = useCallback((message: any): boolean => {
+  const sendMessage = useCallback((message: unknown): boolean => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       try {
         ws.current.send(JSON.stringify(message))

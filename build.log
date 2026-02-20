@@ -2,5 +2,7 @@
 > talon@0.1.0 build
 > next build
 
-⨯ Unable to acquire lock at /root/clawd/talon-private/.next/lock, is another instance of next build running?
-  Suggestion: If you intended to restart next build, terminate the other process, and then try again.
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env.production
+
+  Creating an optimized production build ...

@@ -17,6 +17,7 @@ import {
 import { useRealtimeSessions, useRealtimeCronJobs, useRealtimeDashboard } from '@/hooks/useEnhancedWebSocket'
 import { RealtimeStatus, LiveActivityPulse } from './RealtimeStatus'
 import { cn } from '@/lib/utils'
+import { Session, CronJob } from '@/lib/types'
 
 interface RealtimeDashboardProps {
   className?: string
@@ -75,7 +76,7 @@ export function RealtimeDashboard({ className, children }: RealtimeDashboardProp
  */
 interface RealtimeSessionsListProps {
   className?: string
-  onSessionUpdate?: (sessions: any[]) => void
+  onSessionUpdate?: (sessions: Session[]) => void
 }
 
 export function RealtimeSessionsList({ className, onSessionUpdate }: RealtimeSessionsListProps) {
@@ -143,7 +144,7 @@ export function RealtimeSessionsList({ className, onSessionUpdate }: RealtimeSes
  * Individual session with live updates
  */
 interface RealtimeSessionCardProps {
-  session: any
+  session: Session
   className?: string
 }
 
@@ -220,7 +221,7 @@ function RealtimeSessionCard({ session, className }: RealtimeSessionCardProps) {
  */
 interface RealtimeCronJobsListProps {
   className?: string
-  onJobsUpdate?: (jobs: any[]) => void
+  onJobsUpdate?: (jobs: CronJob[]) => void
 }
 
 export function RealtimeCronJobsList({ className, onJobsUpdate }: RealtimeCronJobsListProps) {
@@ -289,7 +290,7 @@ export function RealtimeCronJobsList({ className, onJobsUpdate }: RealtimeCronJo
  * Individual cron job with live updates
  */
 interface RealtimeCronJobCardProps {
-  job: any
+  job: CronJob
   isRecentlyTriggered?: boolean
   className?: string
 }

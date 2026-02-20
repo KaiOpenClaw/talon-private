@@ -4,6 +4,7 @@
  */
 
 import { WebSocket, WebSocketServer } from 'ws'
+import { IncomingMessage } from 'http'
 import { logger } from '@/lib/logger'
 import type { Session, Agent, CronJob } from '@/types'
 
@@ -97,7 +98,7 @@ class EnhancedWebSocketManager {
   /**
    * Handle new WebSocket connection
    */
-  private handleConnection(ws: WebSocket, req: any): void {
+  private handleConnection(ws: WebSocket, req: IncomingMessage): void {
     const clientId = this.generateClientId()
     const client: WebSocketClient = {
       ws,
