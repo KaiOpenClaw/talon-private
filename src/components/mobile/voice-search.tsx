@@ -9,7 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Mic, MicOff, Square, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDeviceOptimizations } from './mobile-optimized-layout'
-import { TouchButton } from './touch-feedback'
+import { TouchableButton } from './touch-feedback'
 import { useToast } from '@/hooks/use-toast'
 import { logApiError } from '@/lib/logger'
 
@@ -253,7 +253,7 @@ export function VoiceSearch({
   return (
     <div className={cn("flex flex-col items-center space-y-3", className)}>
       {/* Voice Input Button */}
-      <TouchButton
+      <TouchableButton
         onClick={isActive ? stopListening : startListening}
         disabled={isDisabled}
         hapticFeedback="medium"
@@ -286,7 +286,7 @@ export function VoiceSearch({
         {isActive && (
           <div className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-20" />
         )}
-      </TouchButton>
+      </TouchableButton>
 
       {/* Status Text */}
       <div className="text-center min-h-[1.5rem]">
@@ -375,14 +375,14 @@ export function VoiceSearchInput({
       
       {/* Voice Search Button */}
       {isVoiceSupported && device.isMobile && (
-        <TouchButton
+        <TouchableButton
           onClick={() => setShowVoice(true)}
           className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-surface-2 hover:bg-surface-3 flex items-center justify-center text-ink-secondary hover:text-ink-primary transition-colors duration-200"
           hapticFeedback="light"
           aria-label="Voice search"
         >
           <Mic className="w-4 h-4" />
-        </TouchButton>
+        </TouchableButton>
       )}
 
       {/* Voice Search Modal */}
@@ -391,14 +391,14 @@ export function VoiceSearchInput({
           <div className="bg-surface-1 rounded-xl p-6 w-full max-w-sm border border-border-subtle">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-ink-primary">Voice Search</h3>
-              <TouchButton
+              <TouchableButton
                 onClick={() => setShowVoice(false)}
                 className="w-8 h-8 rounded-lg bg-surface-2 hover:bg-surface-3 flex items-center justify-center text-ink-secondary hover:text-ink-primary"
                 hapticFeedback="light"
                 aria-label="Close voice search"
               >
                 <X className="w-4 h-4" />
-              </TouchButton>
+              </TouchableButton>
             </div>
             
             <VoiceSearch

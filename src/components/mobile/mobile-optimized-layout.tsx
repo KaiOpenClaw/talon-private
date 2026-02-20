@@ -8,7 +8,7 @@
 import { ReactNode, useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import TouchableBase from './touch-feedback'
+import { TouchableButton } from './touch-feedback'
 
 interface MobileLayoutProps {
   children: ReactNode
@@ -195,7 +195,7 @@ export function MobileButton({
   }
 
   return (
-    <TouchableBase hapticFeedback={hapticFeedback && !disabled && !loading ? "light" : false}>
+    <TouchableButton hapticFeedback={hapticFeedback && !disabled && !loading ? "light" : false}>
       <button
         className={cn(
           baseClasses,
@@ -209,7 +209,7 @@ export function MobileButton({
       >
         {children}
       </button>
-    </TouchableBase>
+    </TouchableButton>
   )
 }
 
@@ -249,7 +249,7 @@ export function MobileCard({
 
   if (interactive && onClick) {
     return (
-      <TouchableBase
+      <TouchableButton
         hapticFeedback="light"
         className={cn(baseClasses, className)}
         onClick={onClick}
@@ -266,7 +266,7 @@ export function MobileCard({
         >
           {children}
         </div>
-      </TouchableBase>
+      </TouchableButton>
     )
   }
 

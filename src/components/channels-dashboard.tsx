@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
   WifiOff
 } from 'lucide-react';
 import { logApiError } from '@/lib/logger';
+import PullToRefresh from '@/components/mobile/pull-to-refresh';
 
 interface Channel {
   platform: string;
@@ -34,13 +35,7 @@ export function ChannelsDashboard() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchChannels();
-    const interval = setInterval(fetchChannels, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchChannels = async () => {
+  const fetchChannels = useCallback(async () => {
     try {
       const response = await fetch('/api/channels');
       const data = await response.json();
@@ -54,7 +49,13 @@ export function ChannelsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchChannels();
+    const interval = setInterval(fetchChannels, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, [fetchChannels]);
 
   const reconnectChannel = async (platform: string, name: string) => {
     try {
@@ -170,20 +171,21 @@ export function ChannelsDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <MessageCircle className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Channels</p>
-                <p className="text-2xl font-bold">{channelCounts.total}</p>
+    <PullToRefresh onRefresh={fetchChannels} disabled={loading}>
+      <div className="space-y-6">
+        {/* Header Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <MessageCircle className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Channels</p>
+                  <p className="text-2xl font-bold">{channelCounts.total}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
         
         <Card>
           <CardContent className="p-4">
@@ -351,6 +353,7 @@ export function ChannelsDashboard() {
           No channels configured. Set up your messaging accounts in the gateway.
         </div>
       )}
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

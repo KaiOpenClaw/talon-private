@@ -7,6 +7,7 @@ import { useCron } from '@/hooks/use-cron';
 import CronStats from '@/components/cron/cron-stats';
 import CronFilters from '@/components/cron/cron-filters';
 import CronJobsList from '@/components/cron/cron-jobs-list';
+import PullToRefresh from '@/components/mobile/pull-to-refresh';
 
 export function CronDashboard() {
   const {
@@ -43,32 +44,34 @@ export function CronDashboard() {
 
   return (
     <InlineErrorBoundary>
-      <div className="space-y-6 p-6">
-        {/* Stats Overview */}
-        <CronStats stats={stats} loading={loading} />
+      <PullToRefresh onRefresh={fetchJobs} disabled={loading}>
+        <div className="space-y-6 p-6">
+          {/* Stats Overview */}
+          <CronStats stats={stats} loading={loading} />
 
-        {/* Filters */}
-        <CronFilters
-          filter={filter}
-          searchTerm={searchTerm}
-          frequencyFilter={frequencyFilter}
-          setFilter={setFilter}
-          setSearchTerm={setSearchTerm}
-          setFrequencyFilter={setFrequencyFilter}
-          onRefresh={fetchJobs}
-          loading={loading}
-        />
+          {/* Filters */}
+          <CronFilters
+            filter={filter}
+            searchTerm={searchTerm}
+            frequencyFilter={frequencyFilter}
+            setFilter={setFilter}
+            setSearchTerm={setSearchTerm}
+            setFrequencyFilter={setFrequencyFilter}
+            onRefresh={fetchJobs}
+            loading={loading}
+          />
 
-        {/* Jobs List */}
-        <CronJobsList
-          jobs={filteredJobs}
-          onRun={runJob}
-          onToggle={toggleJob}
-          parseNextRun={parseNextRun}
-          parseLastRun={parseLastRun}
-          getFrequencyCategory={getFrequencyCategory}
-        />
-      </div>
+          {/* Jobs List */}
+          <CronJobsList
+            jobs={filteredJobs}
+            onRun={runJob}
+            onToggle={toggleJob}
+            parseNextRun={parseNextRun}
+            parseLastRun={parseLastRun}
+            getFrequencyCategory={getFrequencyCategory}
+          />
+        </div>
+      </PullToRefresh>
     </InlineErrorBoundary>
   );
 }

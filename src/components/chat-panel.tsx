@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2, RotateCcw, Clock, ChevronDown } from 'lucide-react'
 import { logApiError } from '@/lib/logger'
-import { TouchButton } from '@/components/mobile/touch-feedback'
+import { TouchableButton } from '@/components/mobile/touch-feedback'
 import { MobileInlineLoading } from '@/components/mobile/mobile-loading'
 
 interface Message {
@@ -258,7 +258,7 @@ export default function ChatPanel({
             autoComplete="off"
             autoCorrect="on"
           />
-          <TouchButton
+          <TouchableButton
             onClick={sendMessage}
             disabled={!input.trim() || sending}
             hapticFeedback="medium"
@@ -275,7 +275,7 @@ export default function ChatPanel({
                 <span className="hidden sm:inline">Send</span>
               </>
             )}
-          </TouchButton>
+          </TouchableButton>
         </div>
       </div>
     </div>

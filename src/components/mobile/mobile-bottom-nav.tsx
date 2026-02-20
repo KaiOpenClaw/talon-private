@@ -13,7 +13,7 @@ import {
   Bot, Activity, Zap, Plus, Command, DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TouchButton } from './touch-feedback'
+import { TouchableButton } from './touch-feedback'
 import { useSafeAreaInsets } from '@/hooks/useMediaQuery'
 
 interface BottomNavItem {
@@ -141,7 +141,7 @@ export function MobileBottomNav({
         
         {/* Command Palette FAB */}
         {showCommandPalette && (
-          <TouchButton
+          <TouchableButton
             className={cn(
               "relative -mt-6 w-14 h-14 rounded-full shadow-lg",
               "bg-terminal-500 hover:bg-terminal-600 focus:bg-terminal-600",
@@ -158,7 +158,7 @@ export function MobileBottomNav({
                 {notificationCount > 99 ? '99+' : notificationCount}
               </span>
             )}
-          </TouchButton>
+          </TouchableButton>
         )}
       </div>
     </nav>
@@ -377,7 +377,7 @@ export function QuickActionsSheet({
           {/* Actions */}
           <div className="space-y-2">
             {actions.map((action) => (
-              <TouchButton
+              <TouchableButton
                 key={action.id}
                 className={cn(
                   "w-full flex items-center justify-start gap-3 px-4 py-3 text-left",
@@ -393,17 +393,17 @@ export function QuickActionsSheet({
               >
                 {action.icon}
                 <span className="font-medium">{action.label}</span>
-              </TouchButton>
+              </TouchableButton>
             ))}
           </div>
 
           {/* Cancel Button */}
-          <TouchButton
+          <TouchableButton
             className="w-full mt-4 bg-surface-2 text-ink-secondary hover:bg-surface-3"
             onClick={onClose}
           >
             Cancel
-          </TouchButton>
+          </TouchableButton>
         </div>
       </div>
     </>
