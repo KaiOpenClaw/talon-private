@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Search, Command, CornerDownLeft } from 'lucide-react'
-import { CommandPaletteProps, CommandGroupedData } from './command-palette-types'
+import { CommandPaletteProps, CommandGroupedData, CommandItem } from './command-palette-types'
 import { useCommandData } from './command-palette-data'
 import { useCommandPaletteKeyboard } from './command-palette-keyboard'
 import { CommandRow } from './command-row'
@@ -87,7 +87,7 @@ export function CommandPalette({ agents = [] }: CommandPaletteProps) {
     }
   }, [selectedIndex])
 
-  const executeCommand = useCallback((cmd: any) => {
+  const executeCommand = useCallback((cmd: CommandItem) => {
     cmd.action()
     setIsOpen(false)
   }, [])

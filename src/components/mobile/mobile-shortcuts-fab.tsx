@@ -11,7 +11,7 @@ import { Zap, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDeviceOptimizations } from './mobile-optimized-layout'
 import { TouchButton } from './touch-feedback'
-import { MobileShortcutsProps, DEFAULT_SHORTCUTS } from './mobile-shortcut-types'
+import { MobileShortcutsProps, DEFAULT_SHORTCUTS, ShortcutAction } from './mobile-shortcut-types'
 
 /**
  * Floating Action Button with shortcuts
@@ -68,7 +68,7 @@ export function MobileShortcutsFAB({
     }
   }, [position, device.isMobile])
 
-  const handleActionClick = useCallback((action: any) => {
+  const handleActionClick = useCallback((action: ShortcutAction) => {
     if (action.disabled) return
 
     // Provide haptic feedback
