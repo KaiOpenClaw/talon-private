@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ChevronDown, Search, Package, Play, Square, Download, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 
 interface Skill {
   id: string
@@ -62,7 +63,11 @@ export default function SkillsPage() {
       setSkills(categorizedSkills)
       setSummary(data.summary)
     } catch (error) {
-      console.error('Failed to fetch skills:', error)
+      logger.error('Failed to fetch skills', { 
+        error: error instanceof Error ? error.message : String(error),
+        component: 'SkillsPage',
+        action: 'fetchSkills'
+      })
     } finally {
       setLoading(false)
     }
@@ -106,7 +111,13 @@ export default function SkillsPage() {
       setTimeout(fetchSkills, 2000)
       
     } catch (error) {
-      console.error(`Failed to ${operation} skill:`, error)
+      logger.error(`Failed to ${operation} skill`, { 
+        error: error instanceof Error ? error.message : String(error),
+        component: 'SkillsPage',
+        action: 'handleSkillOperation',
+        skillId,
+        operation
+      })
       alert(`Failed to ${operation} skill: ${error}`)
     } finally {
       setOperationInProgress(null)

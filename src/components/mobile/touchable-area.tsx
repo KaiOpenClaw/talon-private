@@ -9,7 +9,11 @@ import { triggerHapticFeedback, getHapticType } from './haptic-feedback'
 import { getTouchInteractionClasses } from './touch-animations'
 import type { TouchableAreaProps } from './touch-feedback-types'
 
-export const TouchableArea = forwardRef<HTMLDivElement, TouchableAreaProps>(
+interface TouchableAreaPropsWithEvents extends TouchableAreaProps {
+  onTouchStart?: (e: React.TouchEvent<HTMLDivElement>) => void;
+}
+
+export const TouchableArea = forwardRef<HTMLDivElement, TouchableAreaPropsWithEvents>(
   ({
     children,
     className,
@@ -17,6 +21,7 @@ export const TouchableArea = forwardRef<HTMLDivElement, TouchableAreaProps>(
     pressStyle = 'scale',
     minTouchSize = false,
     as = 'div',
+    onTouchStart: originalOnTouchStart,
     ...props
   }, ref) => {
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -24,8 +29,7 @@ export const TouchableArea = forwardRef<HTMLDivElement, TouchableAreaProps>(
       if (hapticType) {
         triggerHapticFeedback(hapticType)
       }
-      // Call original onTouchStart if it exists in props
-      const originalOnTouchStart = (props as any).onTouchStart
+      // Call original onTouchStart if provided
       originalOnTouchStart?.(e)
     }
 

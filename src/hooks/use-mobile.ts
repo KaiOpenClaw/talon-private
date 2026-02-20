@@ -99,22 +99,36 @@ export function useMobileBehavior() {
   };
 }
 
+// PWA event interfaces
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
 // PWA installation detection
 export function usePWA() {
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     // Check if app is already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isWebApp = 'standalone' in (navigator as any) && (navigator as any).standalone;
+    const navigatorWithStandalone = navigator as NavigatorWithStandalone;
+    const isWebApp = 'standalone' in navigatorWithStandalone && navigatorWithStandalone.standalone;
     setIsInstalled(isStandalone || isWebApp);
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setCanInstall(true);
     };
 

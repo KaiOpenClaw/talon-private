@@ -9,6 +9,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import MobileWorkspace from '@/components/mobile/mobile-workspace';
 import { MobileWorkspaceWithGestures } from '@/components/mobile/gesture-navigation';
+import { logger } from '@/lib/logger';
 
 export default function MobileWorkspacePage() {
   const params = useParams();
@@ -37,7 +38,12 @@ export default function MobileWorkspacePage() {
           ]);
         }
       } catch (error) {
-        console.error('Failed to fetch agents:', error);
+        logger.error('Failed to fetch agents for mobile workspace', { 
+          error: error instanceof Error ? error.message : String(error),
+          component: 'MobileWorkspacePage',
+          action: 'fetchAgents',
+          workspaceId
+        });
         // Fallback to mock data
         setAvailableAgents([
           { id: workspaceId, name: workspaceId, status: 'active' }
