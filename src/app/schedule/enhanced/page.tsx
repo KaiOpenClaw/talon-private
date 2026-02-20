@@ -9,7 +9,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Plus, Eye, Settings } from 'lucide-react'
-import { CronJob } from '@/lib/types/cron'
+import { CronJob, CreateJobData } from '@/lib/types/cron'
 import { useCronJobs, useJobRuns } from '@/hooks/use-cron-jobs'
 import { CronStatistics } from '@/components/cron/enhanced/cron-statistics'
 import { CronJobList } from '@/components/cron/enhanced/cron-job-list'
@@ -54,7 +54,7 @@ export default function EnhancedSchedulePage() {
     setShowDetailsModal(true)
   }
 
-  const handleCreateJob = async (jobData: any) => {
+  const handleCreateJob = async (jobData: CreateJobData) => {
     await createJob(jobData)
     setShowCreateModal(false)
   }

@@ -31,7 +31,7 @@ export default function WebSocketTestPage() {
     id: string
     type: string
     timestamp: Date
-    data: any
+    data: unknown
   }>>([])
   const [testResults, setTestResults] = useState<{
     connectionTest: 'pending' | 'success' | 'failed'

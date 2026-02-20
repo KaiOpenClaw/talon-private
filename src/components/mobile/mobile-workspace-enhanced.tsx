@@ -13,6 +13,7 @@ import LongPressContextMenu from './long-press-context-menu';
 import PullToRefresh from './pull-to-refresh';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useHapticFeedback } from '@/hooks/use-haptic-feedback';
+import { Message } from './workspace/mobile-workspace-types';
 
 interface Agent {
   id: string;
@@ -199,7 +200,7 @@ export default function MobileWorkspaceEnhanced({
                 Loading messages...
               </div>
             ) : messages.length > 0 ? (
-              messages.map((message: any, index: number) => (
+              messages.map((message: Message, index: number) => (
                 <LongPressContextMenu
                   key={message.id || index}
                   items={getMessageContextItems(message.id, message.isOwn)}

@@ -3,6 +3,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Agent, Session, Blocker } from '@/lib/hooks'
+import { logger } from '@/lib/logger'
 
 // Lazy load mobile nav only when needed
 const MobileNav = lazy(() => import('./mobile-nav'))
@@ -77,6 +78,11 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     
     // Track bundle size impact
     const isMobile = window.innerWidth < 1024
-    console.log(`[Bundle Optimization] Mobile nav ${isMobile ? 'loaded' : 'skipped'} (401 lines saved for desktop users)`)
+    logger.debug(`Mobile nav ${isMobile ? 'loaded' : 'skipped'}`, {
+      component: 'conditional-mobile-nav',
+      action: 'bundle-optimization',
+      isMobile,
+      linesSaved: 401
+    })
   }
 }

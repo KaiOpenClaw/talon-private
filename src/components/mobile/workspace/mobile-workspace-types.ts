@@ -28,15 +28,15 @@ export interface MobileMessageInputProps {
 export interface MobilePanelContentProps {
   type: PanelType;
   workspaceId: string;
-  selectedChannel: any; // TODO: Import proper Channel type from use-workspace
-  onSelectChannel: (channel: any) => void;
+  selectedChannel: Channel | null;
+  onSelectChannel: (channel: Channel) => void;
   onClose: () => void;
 }
 
 export interface MobileChannelsListProps {
   workspaceId: string;
-  selectedChannel: any; // TODO: Import proper Channel type from use-workspace
-  onSelectChannel: (channel: any) => void;
+  selectedChannel: Channel | null;
+  onSelectChannel: (channel: Channel) => void;
   onClose: () => void;
 }
 
@@ -44,6 +44,14 @@ export interface Channel {
   id: string;
   name: string;
   type: string;
+}
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  isOwn?: boolean;
 }
 
 export interface PanelState {

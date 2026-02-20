@@ -3,6 +3,7 @@
 import { lazy, Suspense } from 'react'
 import { Loader2, Search, Shield } from 'lucide-react'
 import { Session } from '@/lib/hooks'
+import { logger } from '@/lib/logger'
 
 // Lazy load heavy dashboard components to reduce initial bundle size
 // These components are loaded on-demand when actually needed
@@ -90,7 +91,12 @@ export const COMPONENT_SIZES = {
 export const useBundleOptimization = () => {
   const trackComponentLoad = (componentName: keyof typeof COMPONENT_SIZES) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Bundle Optimization] Lazy loaded: ${componentName} (${COMPONENT_SIZES[componentName]} lines)`)
+      logger.debug(`Lazy loaded component: ${componentName}`, {
+        component: 'bundle-optimization',
+        action: 'lazy-load',
+        componentName,
+        lines: COMPONENT_SIZES[componentName]
+      })
     }
   }
 

@@ -176,7 +176,7 @@ export function RealtimeEventLog({
   const [events, setEvents] = useState<Array<{
     type: string
     timestamp: Date
-    data: any
+    data: unknown
   }>>([])
 
   // This would need the useAllWebSocketEvents hook, but keeping it simple for now
