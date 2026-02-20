@@ -33,6 +33,7 @@ export type {
 export { TouchableButton } from './touchable-button'
 export { TouchableArea } from './touchable-area'
 export { FloatingActionButton } from './floating-action-button'
+export { TouchCard } from './touch-card'
 
 // Legacy component exports for backward compatibility
 export const TouchFeedbackButton = TouchableButton
