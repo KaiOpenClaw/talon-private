@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
   Home, Search, MessageSquare, Calendar, Settings, 
-  Bot, Activity, Zap, Plus, Command, DollarSign, Package
+  Bot, Activity, Zap, Plus, Command, DollarSign, Package, TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TouchableButton } from './touch-feedback'
@@ -57,6 +57,13 @@ const defaultNavItems: BottomNavItem[] = [
     showOnMobile: true
   },
   {
+    id: 'analytics',
+    label: 'Analytics',
+    icon: <TrendingUp className="w-5 h-5" />,
+    href: '/analytics',
+    showOnMobile: true
+  },
+  {
     id: 'skills',
     label: 'Skills',
     icon: <Package className="w-5 h-5" />,
@@ -68,13 +75,6 @@ const defaultNavItems: BottomNavItem[] = [
     label: 'Agents',
     icon: <Bot className="w-5 h-5" />,
     href: '/workspaces',
-    showOnMobile: true
-  },
-  {
-    id: 'costs',
-    label: 'Costs',
-    icon: <DollarSign className="w-5 h-5" />,
-    href: '/costs',
     showOnMobile: true
   }
 ]

@@ -1,4 +1,4 @@
-import { MessageSquare, Users, Activity, Plus, Settings, Search, BarChart3, Shield, DollarSign, Package } from 'lucide-react'
+import { MessageSquare, Users, Activity, Plus, Settings, Search, BarChart3, Shield, DollarSign, Package, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 interface DashboardNavProps {
@@ -15,6 +15,7 @@ export function DashboardNav({ view, onViewChange }: DashboardNavProps) {
 
   const quickActions = [
     { href: '/search', icon: Search, label: 'Search' },
+    { href: '/analytics', icon: TrendingUp, label: 'Analytics' },
     { href: '/skills', icon: Package, label: 'Skills' },
     { href: '/costs', icon: DollarSign, label: 'Costs' },
     { href: '/schedule', icon: BarChart3, label: 'Schedule' },
