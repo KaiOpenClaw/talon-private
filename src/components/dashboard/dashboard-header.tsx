@@ -1,6 +1,7 @@
 import { Terminal, RefreshCw } from 'lucide-react'
 import { LogoutButton } from '@/components/auth-status'
 import { ConnectionStatus } from '@/components/connection-status'
+import { WebSocketStatus } from '@/components/websocket-status'
 
 interface DashboardHeaderProps {
   isRefreshing: boolean
@@ -26,6 +27,9 @@ export function DashboardHeader({ isRefreshing, onRefresh }: DashboardHeaderProp
         </button>
         
         <ConnectionStatus variant="icon" />
+        
+        {/* WebSocket real-time status */}
+        <WebSocketStatus className="hidden sm:block" />
         
         <span className="text-xs text-ink-muted hidden sm:block">OpenClaw UI</span>
         

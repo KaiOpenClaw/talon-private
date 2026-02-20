@@ -36,8 +36,9 @@ const clientConfigSchema = z.object({
   // Client-safe configuration only
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   
-  // WebSocket URL - Use relative URLs for security
-  // In production, this should be dynamically determined from the current host
+  // WebSocket configuration (client-safe)
+  NEXT_PUBLIC_GATEWAY_URL: z.string().optional(),
+  NEXT_PUBLIC_GATEWAY_TOKEN: z.string().optional(),
 })
 
 /**
@@ -73,6 +74,8 @@ export const clientConfig = (() => {
     // Only pass safe variables to client
     const safeEnv = {
       NODE_ENV: process.env.NODE_ENV,
+      NEXT_PUBLIC_GATEWAY_URL: process.env.NEXT_PUBLIC_GATEWAY_URL,
+      NEXT_PUBLIC_GATEWAY_TOKEN: process.env.NEXT_PUBLIC_GATEWAY_TOKEN,
     }
     return clientConfigSchema.parse(safeEnv)
   } catch (error) {
@@ -85,6 +88,8 @@ export const clientConfig = (() => {
     // Fallback to defaults for client-side
     return {
       NODE_ENV: 'development' as const,
+      NEXT_PUBLIC_GATEWAY_URL: undefined,
+      NEXT_PUBLIC_GATEWAY_TOKEN: undefined,
     }
   }
 })()

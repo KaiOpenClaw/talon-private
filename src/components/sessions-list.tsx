@@ -10,6 +10,8 @@ import { useSafeApiCall } from '@/hooks/useSafeApiCall'
 import { InlineErrorBoundary } from '@/components/enhanced-error-boundary'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { useSessionUpdates, useWebSocketStatus } from '@/hooks/useWebSocket'
+import { WebSocketStatus, LiveActivityPulse } from '@/components/websocket-status'
 
 interface Session {
   key: string
@@ -38,6 +40,10 @@ export default function SessionsList({ onSelectSession, selectedSessionKey }: Se
   const [expandedSession, setExpandedSession] = useState<string | null>(null)
   const safeApiCall = useSafeApiCall()
   const { toast } = useToast()
+  
+  // WebSocket integration for real-time updates
+  const { lastUpdate, sessionUpdateCount } = useSessionUpdates()
+  const { connected: wsConnected } = useWebSocketStatus()
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
@@ -88,11 +94,37 @@ export default function SessionsList({ onSelectSession, selectedSessionKey }: Se
 
   useEffect(() => {
     fetchSessions()
-    // Auto-refresh every 10 seconds (but slower if there are errors)
-    const refreshInterval = error ? 30000 : 10000 // 30s if error, 10s if working
-    const interval = setInterval(fetchSessions, refreshInterval)
-    return () => clearInterval(interval)
-  }, [fetchSessions, error])
+  }, [fetchSessions])
+
+  // Refresh sessions when WebSocket updates are received
+  useEffect(() => {
+    if (lastUpdate) {
+      logger.debug('WebSocket session update received', { 
+        eventType: lastUpdate.type,
+        updateCount: sessionUpdateCount 
+      })
+      
+      // Debounce rapid updates - only refresh after 500ms of no updates
+      const timeoutId = setTimeout(() => {
+        fetchSessions()
+      }, 500)
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [lastUpdate, sessionUpdateCount, fetchSessions])
+
+  // Fallback polling only when WebSocket is not connected
+  useEffect(() => {
+    if (!wsConnected) {
+      // Fallback to polling when WebSocket is disconnected
+      const refreshInterval = error ? 30000 : 15000 // 30s if error, 15s if working
+      const interval = setInterval(() => {
+        logger.debug('WebSocket disconnected - using fallback polling')
+        fetchSessions()
+      }, refreshInterval)
+      return () => clearInterval(interval)
+    }
+  }, [wsConnected, error, fetchSessions])
 
   function formatTime(iso?: string): string {
     if (!iso) return ''
@@ -117,23 +149,41 @@ export default function SessionsList({ onSelectSession, selectedSessionKey }: Se
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-blue-400" />
             <span className="font-medium">Active Sessions</span>
-            {error && retryCount > 0 && (
+            
+            {/* Live activity indicator */}
+            <LiveActivityPulse className="ml-1" />
+            
+            {/* Error indicators */}
+            {error && retryCount > 0 && !wsConnected && (
               <WifiOff className="w-4 h-4 text-red-400" />
             )}
+            
             <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
               {sessions.length}
             </span>
           </div>
-          <button
-            onClick={fetchSessions}
-            disabled={loading}
-            className={`p-1.5 rounded text-ink-tertiary hover:text-ink-primary disabled:opacity-50 transition-colors ${
-              error ? 'hover:bg-red-100 text-red-500' : 'hover:bg-surface-3'
-            }`}
-            title={error ? `Retry (${retryCount} attempts)` : 'Refresh sessions'}
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          
+          <div className="flex items-center gap-2">
+            {/* WebSocket status indicator */}
+            <WebSocketStatus size="sm" />
+            
+            <button
+              onClick={fetchSessions}
+              disabled={loading}
+              className={`p-1.5 rounded text-ink-tertiary hover:text-ink-primary disabled:opacity-50 transition-colors ${
+                error ? 'hover:bg-red-100 text-red-500' : 'hover:bg-surface-3'
+              }`}
+              title={
+                wsConnected 
+                  ? 'Manual refresh (Live updates active)' 
+                  : error 
+                    ? `Retry (${retryCount} attempts)` 
+                    : 'Refresh sessions'
+              }
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {/* Session List */}
@@ -186,13 +236,21 @@ export default function SessionsList({ onSelectSession, selectedSessionKey }: Se
           {error && sessions.length > 0 && (
             <div className="mx-4 mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700 flex items-center gap-2">
               <WifiOff className="w-3 h-3" />
-              Connection issues. Showing cached data.
+              {wsConnected ? 'API connection issues. Live updates active.' : 'Connection issues. Using fallback polling.'}
               <button 
                 onClick={fetchSessions}
                 className="underline hover:no-underline ml-auto"
               >
                 Retry
               </button>
+            </div>
+          )}
+          
+          {/* Real-time status indicator */}
+          {!error && wsConnected && sessions.length > 0 && (
+            <div className="mx-4 mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700 flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              Live updates active • Updated {sessionUpdateCount} times
             </div>
           )}
           
