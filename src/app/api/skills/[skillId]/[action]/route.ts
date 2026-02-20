@@ -8,14 +8,14 @@ const GATEWAY_URL = process.env.GATEWAY_URL;
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN;
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     skillId: string
     action: string
-  }
+  }>
 }
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
-  const { skillId, action } = params;
+  const { skillId, action } = await params;
 
   if (!GATEWAY_URL || !GATEWAY_TOKEN) {
     return NextResponse.json(
