@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,14 +22,22 @@ export async function POST(request: NextRequest) {
     const subscriptionKey = subscription.endpoint
     subscriptions.add(subscriptionKey)
 
-    console.log(`New push notification subscription: ${subscriptionKey}`)
+    logger.info('Push notification subscription added', {
+      component: 'NotificationSubscribeAPI',
+      action: 'subscribe',
+      endpoint: subscriptionKey.substring(0, 50) + '...' // Truncate for privacy
+    })
 
     return NextResponse.json({ 
       success: true,
       message: 'Subscription saved successfully' 
     })
   } catch (error) {
-    console.error('Failed to save push subscription:', error)
+    logger.error('Failed to save push subscription', {
+      component: 'NotificationSubscribeAPI',
+      action: 'subscribe',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
     return NextResponse.json(
       { error: 'Failed to save subscription' },
       { status: 500 }
@@ -61,7 +70,11 @@ export async function DELETE(request: NextRequest) {
       message: 'Subscription removed successfully' 
     })
   } catch (error) {
-    console.error('Failed to remove push subscription:', error)
+    logger.error('Failed to remove push subscription', {
+      component: 'NotificationSubscribeAPI', 
+      action: 'unsubscribe',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
     return NextResponse.json(
       { error: 'Failed to remove subscription' },
       { status: 500 }

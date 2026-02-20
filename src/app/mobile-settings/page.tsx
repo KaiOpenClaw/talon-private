@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { BiometricAuthSetup } from '@/components/biometric-auth'
 import { NotificationStatus } from '@/components/push-notifications'
 import { usePWAInstall } from '@/components/pwa-install-prompt'
+import { logger } from '@/lib/logger'
 import { 
   Smartphone, 
   Fingerprint, 
@@ -65,7 +66,11 @@ export default function MobileSettingsPage() {
           info.batteryLevel = Math.round(battery.level * 100)
           info.isCharging = battery.charging
         } catch (error) {
-          console.log('Battery API not available')
+          logger.debug('Battery API not available', { 
+            component: 'MobileSettings',
+            action: 'getBatteryInfo',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          })
         }
       }
 
