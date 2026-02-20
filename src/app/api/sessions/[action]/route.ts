@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logApiError } from '@/lib/logger'
+import { 
+  broadcastSessionUpdate, 
+  broadcastSessionCreated, 
+  broadcastMessageSent 
+} from '@/lib/websocket-enhanced'
 
 const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:6820'
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
@@ -37,7 +42,14 @@ export async function GET(request: NextRequest, { params }: Params) {
         })
         
         if (!res.ok) return NextResponse.json({ sessions: [] })
-        return NextResponse.json(await res.json())
+        const data = await res.json()
+        
+        // Broadcast session updates to WebSocket clients
+        if (data.sessions) {
+          broadcastSessionUpdate(data.sessions, '/api/sessions/list')
+        }
+        
+        return NextResponse.json(data)
       }
       
       case 'history': {
@@ -112,7 +124,18 @@ export async function POST(request: NextRequest, { params }: Params) {
           return NextResponse.json({ error: 'Send failed' }, { status: res.status })
         }
         
-        return NextResponse.json(await res.json())
+        const result = await res.json()
+        
+        // Broadcast message sent event
+        if (result.success !== false) {
+          broadcastMessageSent(
+            sessionKey || result.sessionKey || 'unknown',
+            result.messageCount || 1,
+            '/api/sessions/send'
+          )
+        }
+        
+        return NextResponse.json(result)
       }
       
       case 'spawn': {
@@ -132,7 +155,21 @@ export async function POST(request: NextRequest, { params }: Params) {
           return NextResponse.json({ error: 'Spawn failed' }, { status: res.status })
         }
         
-        return NextResponse.json(await res.json())
+        const result = await res.json()
+        
+        // Broadcast session created event
+        if (result.sessionKey && result.success !== false) {
+          broadcastSessionCreated({
+            key: result.sessionKey,
+            kind: 'isolated',
+            agentId,
+            model,
+            lastActivity: new Date().toISOString(),
+            messageCount: 0
+          } as any, '/api/sessions/spawn')
+        }
+        
+        return NextResponse.json(result)
       }
       
       default:

@@ -8,10 +8,13 @@ import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { DashboardStats } from '@/components/dashboard/dashboard-stats'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { AgentList } from '@/components/dashboard/agent-list'
+import { RealtimeDashboard } from '@/components/realtime/RealtimeDashboard'
+import { RealtimeStatus } from '@/components/realtime/RealtimeStatus'
 import { useDashboard } from '@/hooks/use-dashboard'
 import { useCommandPalette } from '@/hooks/useCommandPalette'
+import { useRealtimeDashboard } from '@/hooks/useEnhancedWebSocket'
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Wifi } from 'lucide-react'
 
 export default function Dashboard() {
   const {
@@ -35,6 +38,7 @@ export default function Dashboard() {
   } = useDashboard()
   
   const { openCommandPalette } = useCommandPalette()
+  const realtimeDashboard = useRealtimeDashboard()
 
   if (isLoading) {
     return (
@@ -67,7 +71,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen flex flex-col lg:flex-row bg-surface-0">
+    <RealtimeDashboard>
+      <div className="h-screen flex flex-col lg:flex-row bg-surface-0">
       {/* Mobile PWA Install Prompt */}
       <PWAInstallPrompt />
 
@@ -261,6 +266,7 @@ export default function Dashboard() {
         currentAgent={selectedAgent?.id}
         onCommandPalette={openCommandPalette}
       />
-    </div>
+      </div>
+    </RealtimeDashboard>
   )
 }

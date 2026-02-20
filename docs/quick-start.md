@@ -1,188 +1,160 @@
-# Quick Start Guide
+# Talon Quick Start Guide
 
-Get up and running with Talon in 5 minutes. This guide assumes you have an OpenClaw Gateway already running.
+*Get your AI agent command center running in 5 minutes*
 
-## 🚀 5-Minute Setup
+## Prerequisites
 
-### Step 1: Deploy to Render (Recommended)
+Before starting, ensure you have:
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/TerminalGravity/talon-private)
+- [ ] **OpenClaw Gateway** running and accessible
+- [ ] **Node.js 18+** installed locally  
+- [ ] **OpenAI API key** for vector search (optional)
+- [ ] **GitHub account** for deployment
 
-1. **Click Deploy** - Opens Render deployment dialog
-2. **Connect GitHub** - Authorize Render to access the repository
-3. **Name your service** - e.g., "talon-dashboard"
-4. **Set environment variables** (see Step 2 below)
-5. **Click Deploy** - Takes ~3 minutes to build and deploy
+## 1. Environment Setup
 
-### Step 2: Configure Environment
+### Get Your Gateway URL & Token
 
-In Render's environment variable section, add:
-
-```env
-# Required: OpenClaw Gateway Connection
-GATEWAY_URL=https://your-gateway.example.com:5050
-GATEWAY_TOKEN=your_gateway_auth_token
-
-# Recommended: OpenAI for semantic search
-OPENAI_API_KEY=sk-your_openai_api_key_here
-
-# Optional: Authentication (generates random if not set)
-TALON_AUTH_TOKEN=your_secure_random_token
-```
-
-**💡 Pro Tip:** If your gateway is behind a firewall, use Tailscale Funnel:
-```bash
-tailscale funnel 5050
-# Creates: https://machine-name.tail-domain.ts.net:5050
-```
-
-### Step 3: Access Your Dashboard
-
-1. **Open your deployment** - Render provides the URL after deployment
-2. **Login** - Use the auth token from Step 2 (or auto-generated)
-3. **Verify connection** - System Status should show green indicators
-
----
-
-## ✅ First Steps Checklist
-
-Once deployed, verify everything is working:
-
-- [ ] **System Status** - All indicators green
-- [ ] **Agents List** - Your OpenClaw agents appear in sidebar  
-- [ ] **Chat Panel** - Send a test message to an agent
-- [ ] **Memory Browser** - View agent workspace files
-- [ ] **Search** - Try semantic search across your agent memories
-- [ ] **Cron Jobs** - View your scheduled tasks
-- [ ] **Skills** - Check available capabilities
-
----
-
-## 🎯 Key Features Overview
-
-### Mission Control Dashboard
-Your command center for OpenClaw:
-- **Agents Overview** - All 20+ agents with status indicators
-- **Session Management** - Active conversations and history
-- **System Health** - Gateway, skills, channels status
-- **Cron Dashboard** - Monitor and control scheduled tasks
-
-### Real-Time Chat Interface
-Better than Discord:
-- **Syntax highlighting** - Code blocks render beautifully
-- **Full responses** - No message truncation
-- **File attachments** - Upload and share files directly
-- **Message history** - Complete conversation timeline
-
-### Semantic Search
-Find anything across all agent workspaces:
-- **Vector search** - Powered by OpenAI embeddings
-- **Agent filtering** - Search within specific agents
-- **Smart results** - Ranked by relevance with context
-- **Auto-indexing** - Keeps search current
-
-### Memory & Workspace Management
-Direct access to agent files:
-- **File browser** - Navigate all workspace directories
-- **Live editing** - Modify MEMORY.md and other files
-- **Syntax highlighting** - Markdown, code, and logs
-- **Auto-save** - Changes persist immediately
-
-### Skills & Capabilities
-Manage your OpenClaw capabilities:
-- **49 skills available** - From coding to image generation
-- **Dependency tracking** - See what's missing for each skill
-- **One-click install** - Enable new capabilities instantly
-- **Usage monitoring** - Track skill utilization
-
----
-
-## 🔧 Common Configuration
-
-### Enable Semantic Search
-
-1. **Set OpenAI API key** in environment variables
-2. **Index your workspaces**:
+1. **Find your OpenClaw Gateway**:
    ```bash
-   curl -X POST https://your-talon.com/api/index \
-     -H "Authorization: Bearer $GATEWAY_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"force": true}'
+   openclaw status
    ```
-3. **Wait for indexing** - Usually takes 1-2 minutes
-4. **Test search** - Try searching for "deployment" or "cron jobs"
+   Look for the gateway URL (usually `https://your-server:5050`)
 
-### Set Up Team Access
+2. **Get your authentication token**:
+   ```bash
+   cat ~/.openclaw/openclaw.json | grep token
+   ```
 
-1. **Generate auth tokens** for each team member
-2. **Share deployment URL** and their individual token
-3. **Configure permissions** (coming in v0.9.0)
+### Configure Environment Variables
 
-### Connect Additional Channels
+Create `.env.local` in your Talon directory:
 
-Talon monitors your messaging channels:
-- **Discord** - Multiple bot accounts supported
-- **Telegram** - Bot API integration  
-- **Slack** - Coming soon
-- **Teams** - Coming soon
-
----
-
-## 🐛 Troubleshooting
-
-### Gateway Connection Issues
-
-**Symptom:** Red indicators in System Status
 ```bash
-# Test gateway connectivity
-curl https://your-gateway.com:5050/api/health
+# Required: OpenClaw Gateway connection
+GATEWAY_URL=https://your-server.tail123abc.ts.net:5050  
+GATEWAY_TOKEN=your-openclaw-token-here
+
+# Optional: Vector search (enables semantic search)
+OPENAI_API_KEY=your-openai-key-here
+
+# Optional: Talon API (for workspace file access)
+TALON_API_URL=https://your-talon-api-url.com
+TALON_API_TOKEN=your-talon-api-token
 ```
 
-**Solutions:**
-- Verify `GATEWAY_URL` is correct and accessible
-- Check `GATEWAY_TOKEN` matches your OpenClaw config
-- Ensure firewall allows connections to port 5050
-- Try Tailscale Funnel if behind NAT/firewall
+## 2. Local Development
 
-### Search Not Working  
+### Clone and Install
+```bash
+git clone https://github.com/TerminalGravity/talon-private.git
+cd talon-private
+npm install
+```
 
-**Symptom:** Empty search results or "Search disabled"
-1. **Set OpenAI API key** - Required for embeddings
-2. **Trigger indexing** - POST to `/api/index`
-3. **Check indexing logs** - View in System Status
-4. **Verify permissions** - OpenAI API key needs embedding access
+### Start Development Server
+```bash
+npm run dev
+```
 
-### Agents Not Appearing
+Visit `http://localhost:3000` - you should see the Talon dashboard!
 
-**Symptom:** Empty agents list
-1. **Check gateway connection** - Must be online
-2. **Verify agent discovery** - Gateway needs access to agent workspaces
-3. **Restart gateway** - Sometimes agents need rediscovery
-4. **Check file permissions** - Gateway needs read access to `/root/clawd/agents/`
+### Test Your Connection
+
+1. **Gateway Health**: Check the top-right status indicator should be green
+2. **Agent List**: You should see your OpenClaw agents in the sidebar
+3. **Chat Interface**: Try sending a message to any agent
+
+## 3. Quick Deploy to Render
+
+### One-Click Deploy
+
+1. **Fork the Repository** to your GitHub account
+
+2. **Create Render Service**:
+   - Go to [render.com](https://render.com)
+   - Click "New" → "Web Service"  
+   - Connect your forked repository
+   - Use these settings:
+     ```
+     Build Command: npm run build
+     Start Command: npm start
+     Node Version: 18
+     ```
+
+3. **Add Environment Variables** in Render dashboard:
+   ```
+   GATEWAY_URL=your-gateway-url
+   GATEWAY_TOKEN=your-token
+   OPENAI_API_KEY=your-openai-key (optional)
+   ```
+
+4. **Deploy**: Render will automatically build and deploy your Talon instance
+
+## 4. First Steps in Talon
+
+### Explore the Dashboard
+- **Agent Sidebar**: All your OpenClaw agents with status indicators
+- **Chat Panel**: Real-time conversation with any agent
+- **Session History**: Complete conversation logs with search
+- **Skills Dashboard**: Manage your OpenClaw capability packs
+- **Cron Jobs**: Schedule and monitor automated tasks
+
+### Enable Vector Search (Optional)
+```bash
+# In your local Talon directory
+npm run index-workspaces
+```
+This indexes all agent memories for semantic search.
+
+### Try Key Features
+1. **Chat with an Agent**: Click any agent in sidebar, send a message
+2. **Browse Agent Memory**: Click "Workspace" tab to see agent files
+3. **Search Across All Agents**: Use the search bar for semantic queries
+4. **Mobile View**: Access Talon from your phone for on-the-go management
+
+## 5. Common Issues & Solutions
+
+### ❌ "Gateway Connection Failed"
+- **Check**: Is your OpenClaw gateway running? (`openclaw status`)
+- **Verify**: Gateway URL is accessible from your deployment location
+- **Test**: Try the gateway URL in your browser
+
+### ❌ "No Agents Found"  
+- **Check**: Your gateway token has proper permissions
+- **Verify**: Agents are actually running (`openclaw agents list`)
+- **Restart**: Try restarting both gateway and Talon
+
+### ❌ "Vector Search Not Working"
+- **Check**: OPENAI_API_KEY is set correctly
+- **Run**: `npm run index-workspaces` to create the search index
+- **Verify**: You have agent workspace files to index
+
+### ❌ "Build Failures"
+- **Node Version**: Ensure you're using Node.js 18 or later
+- **Dependencies**: Run `npm install` to update packages
+- **Clear Cache**: Delete `.next/` folder and rebuild
+
+## 6. Next Steps
+
+### Customize Your Setup
+- **Themes**: Enable dark/light mode toggle
+- **Mobile**: Configure PWA settings for mobile installation  
+- **Performance**: Set up caching for faster load times
+
+### Advanced Features  
+- **Multi-Gateway**: Connect multiple OpenClaw instances
+- **Team Access**: Set up authentication for team members
+- **Custom Skills**: Develop custom dashboard components
+- **API Integration**: Build custom tools using Talon's API
+
+### Get Support
+- **GitHub Issues**: Report bugs or request features
+- **Discord Community**: Join other Talon users for help and tips
+- **Documentation**: Complete guides at `/docs/`
 
 ---
 
-## 🚀 Next Steps
+**🎉 Congratulations!** You now have a fully functional AI agent command center. Start by chatting with your agents and exploring the workspace browser—you'll quickly see why Talon is better than managing agents through Discord.
 
-### Explore Advanced Features
-- **[WebSocket real-time updates](websockets.md)** - Live dashboard updates
-- **[Custom themes and layouts](customization.md)** - Personalize your interface
-- **[API integration](api.md)** - Build custom tools and automations
-- **[Mobile optimization](mobile.md)** - Use Talon on your phone
-
-### Join the Community
-- **[Discord Server](https://discord.gg/openclaw)** - Get help and share tips
-- **[GitHub Discussions](https://github.com/TerminalGravity/talon-private/discussions)** - Feature requests and ideas
-- **[Contributing Guide](../CONTRIBUTING.md)** - Help improve Talon
-
-### Advanced Deployment
-- **[Custom domains](custom-domains.md)** - Use your own domain
-- **[Load balancing](scaling.md)** - Handle high traffic
-- **[Backup strategies](backup.md)** - Protect your data
-- **[Monitoring setup](monitoring.md)** - Production observability
-
----
-
-**🎉 Congratulations!** You now have a powerful command center for your OpenClaw agents. 
-
-**Need help?** Join our [Discord](https://discord.gg/openclaw) or [create an issue](https://github.com/TerminalGravity/talon-private/issues).
+**Questions?** Check our [troubleshooting guide](./troubleshooting.md) or [open an issue](https://github.com/TerminalGravity/talon-private/issues).

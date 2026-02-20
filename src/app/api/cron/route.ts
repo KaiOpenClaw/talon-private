@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { CronJob } from '@/types'
 import { env } from '@/lib/config'
+import { broadcastCronUpdated, broadcastCronTriggered } from '@/lib/websocket-enhanced'
 
 // Raw job format from OpenClaw gateway
 interface RawCronJob {
@@ -144,6 +145,9 @@ export async function GET(request: NextRequest) {
       errorMessage: job.errorMessage
     })) || [];
     
+    // Broadcast cron update to WebSocket clients
+    broadcastCronUpdated(jobs, '/api/cron')
+    
     return NextResponse.json({ 
       jobs,
       summary: {
@@ -185,6 +189,10 @@ export async function POST(request: NextRequest) {
       }
       
       const data = await res.json()
+      
+      // Broadcast cron triggered event
+      broadcastCronTriggered(jobId, '/api/cron/run')
+      
       return NextResponse.json({ success: true, data })
     }
     
