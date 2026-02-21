@@ -26,11 +26,11 @@ Talon is a modern web dashboard for managing AI agents through OpenClaw. Stop sc
 ## 🚀 Quick Start
 
 ### Option 1: Deploy to Render (Recommended)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/TerminalGravity/talon-private)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/KaiOpenClaw/talon-private)
 
 ### Option 2: Local Development
 ```bash
-git clone https://github.com/TerminalGravity/talon-private.git
+git clone https://github.com/KaiOpenClaw/talon-private.git
 cd talon-private
 npm install
 npm run dev
@@ -38,7 +38,7 @@ npm run dev
 
 ### Option 3: One-Line Setup
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TerminalGravity/talon-private/main/scripts/quick-deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/KaiOpenClaw/talon-private/main/scripts/quick-deploy.sh | bash
 ```
 
 **📚 Complete Guide**: [Quick Start Documentation](docs/quick-start.md)
