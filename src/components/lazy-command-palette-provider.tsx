@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, lazy, Suspense, useCallback } from 'react'
+import { logger } from '@/lib/logger'
 
 // Lazy load the command palette only when actually opened
 const CommandPalette = lazy(() => import('./command-palette').then(module => ({
@@ -57,5 +58,10 @@ export function LazyCommandPaletteProvider({ children }: LazyCommandPaletteProvi
 
 // Performance tracking
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.log('[Bundle Optimization] LazyCommandPaletteProvider initialized - Command palette will load on Cmd+K (459 lines)')
+  logger.debug('LazyCommandPaletteProvider initialized', {
+    component: 'LazyCommandPaletteProvider',
+    trigger: 'Cmd+K',
+    bundleOptimization: 'Command palette lazy loaded',
+    originalLines: 459
+  })
 }

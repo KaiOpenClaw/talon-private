@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,7 +68,12 @@ export async function POST(request: NextRequest) {
           )
           return { success: true, endpoint: (subscription as { endpoint?: string }).endpoint }
         } catch (error: unknown) {
-          console.error(`Failed to send push notification to ${(subscription as { endpoint?: string }).endpoint}:`, error)
+          logger.error('Failed to send push notification', {
+            endpoint: (subscription as { endpoint?: string }).endpoint,
+            error: error instanceof Error ? error.message : String(error),
+            component: 'push-notifications',
+            api: '/api/notifications/send'
+          })
           return { 
             success: false, 
             endpoint: (subscription as { endpoint?: string }).endpoint, 
@@ -80,7 +86,13 @@ export async function POST(request: NextRequest) {
     const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length
     const failed = results.length - successful
 
-    console.log(`Push notifications sent: ${successful} successful, ${failed} failed`)
+    logger.info('Push notifications sent', {
+      successful,
+      failed,
+      total: results.length,
+      successRate: `${Math.round((successful / results.length) * 100)}%`,
+      component: 'push-notifications'
+    })
 
     return NextResponse.json({
       success: true,
@@ -89,7 +101,12 @@ export async function POST(request: NextRequest) {
       results: results.map(r => r.status === 'fulfilled' ? r.value : { success: false })
     })
   } catch (error) {
-    console.error('Failed to send push notifications:', error)
+    logger.error('Failed to send push notifications', {
+      error: error instanceof Error ? error.message : String(error),
+      component: 'push-notifications',
+      api: '/api/notifications/send',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
       { error: 'Failed to send notifications' },
       { status: 500 }

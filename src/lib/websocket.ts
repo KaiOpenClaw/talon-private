@@ -6,6 +6,7 @@
 import { cache, CACHE_TTL } from './cache'
 import { env } from './config'
 import { Session, CronJob } from './gateway'
+import { logger } from './logger'
 
 // WebSocket event types that the Gateway might send
 export interface WebSocketEvent {
@@ -67,20 +68,30 @@ class WebSocketManager {
       const gatewayToken = env.client.NEXT_PUBLIC_GATEWAY_TOKEN
       
       if (!gatewayUrl) {
-        console.warn('Gateway URL not configured for WebSocket connection')
+        logger.warn('Gateway URL not configured for WebSocket connection', { 
+          component: 'WebSocketManager',
+          method: 'connect'
+        })
         return
       }
 
       // Convert HTTP URL to WebSocket URL
       const wsUrl = gatewayUrl.replace(/^https?:/, 'wss:').replace(/^http:/, 'ws:') + '/api/ws'
       
-      console.log('Connecting to WebSocket:', wsUrl)
+      logger.info('Connecting to WebSocket', { 
+        wsUrl: wsUrl.replace(/\/\/.*@/, '//[redacted]@'), // Hide auth tokens
+        component: 'WebSocketManager'
+      })
       
       this.ws = new WebSocket(wsUrl)
       this.connectionStatus.reconnecting = true
 
       this.ws.onopen = () => {
-        console.log('WebSocket connected')
+        logger.info('WebSocket connected successfully', {
+          component: 'WebSocketManager',
+          reconnectAttempts: this.reconnectAttempts,
+          timestamp: new Date().toISOString()
+        })
         this.connectionStatus.connected = true
         this.connectionStatus.reconnecting = false
         this.connectionStatus.lastConnected = new Date()
@@ -113,17 +124,32 @@ class WebSocketManager {
           const wsEvent: WebSocketEvent = JSON.parse(event.data)
           this.handleEvent(wsEvent)
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error)
+          logger.error('Failed to parse WebSocket message', {
+            error: error instanceof Error ? error.message : String(error),
+            component: 'WebSocketManager',
+            method: 'onmessage',
+            rawData: event.data?.substring(0, 100) // Log first 100 chars for debugging
+          })
         }
       }
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
+        logger.error('WebSocket error occurred', {
+          error: String(error),
+          component: 'WebSocketManager',
+          errorCount: this.connectionStatus.errorCount + 1,
+          connected: this.connectionStatus.connected
+        })
         this.connectionStatus.errorCount++
       }
 
       this.ws.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason)
+        logger.info('WebSocket connection closed', {
+          code: event.code,
+          reason: event.reason || 'No reason provided',
+          component: 'WebSocketManager',
+          wasConnected: this.connectionStatus.connected
+        })
         this.connectionStatus.connected = false
         this.stopHeartbeat()
 
@@ -134,7 +160,13 @@ class WebSocketManager {
       }
 
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error)
+      logger.error('Failed to connect WebSocket', {
+        error: error instanceof Error ? error.message : String(error),
+        component: 'WebSocketManager',
+        method: 'connect',
+        reconnectAttempts: this.reconnectAttempts,
+        maxReconnectAttempts: this.maxReconnectAttempts
+      })
       this.scheduleReconnect()
     }
   }
@@ -143,7 +175,12 @@ class WebSocketManager {
    * Handle incoming WebSocket events
    */
   private handleEvent(event: WebSocketEvent): void {
-    console.log('WebSocket event received:', event)
+    logger.debug('WebSocket event received', {
+      eventType: event.type,
+      sessionKey: event.data.sessionKey,
+      timestamp: event.data.timestamp,
+      component: 'WebSocketManager'
+    })
 
     // Update cache based on event type
     switch (event.type) {
@@ -250,7 +287,12 @@ class WebSocketManager {
 
     const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 30000)
     
-    console.log(`Scheduling WebSocket reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`)
+    logger.info('Scheduling WebSocket reconnect', {
+      delay,
+      attempt: this.reconnectAttempts,
+      maxAttempts: this.maxReconnectAttempts,
+      component: 'WebSocketManager'
+    })
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null
@@ -296,7 +338,12 @@ class WebSocketManager {
       try {
         handler(event)
       } catch (error) {
-        console.error('Error in WebSocket event handler:', error)
+        logger.error('Error in WebSocket event handler', {
+          error: error instanceof Error ? error.message : String(error),
+          eventType: event.type,
+          component: 'WebSocketManager',
+          handlerCount: handlers.length
+        })
       }
     })
 
@@ -307,7 +354,12 @@ class WebSocketManager {
         try {
           handler(event)
         } catch (error) {
-          console.error('Error in WebSocket catch-all handler:', error)
+          logger.error('Error in WebSocket catch-all handler', {
+            error: error instanceof Error ? error.message : String(error),
+            eventType: event.type,
+            component: 'WebSocketManager',
+            catchAllHandlers: allHandlers.length
+          })
         }
       })
     }

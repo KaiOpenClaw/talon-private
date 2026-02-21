@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 interface GitHubRepoData {
   stargazers_count: number;
@@ -143,10 +144,11 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('GitHub Analytics API Error:', {
+    logger.error('GitHub Analytics API Error', {
       error: error instanceof Error ? error.message : 'Unknown error',
       endpoint: `/api/analytics/github`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      stack: error instanceof Error ? error.stack : undefined
     });
 
     return NextResponse.json({

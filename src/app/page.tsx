@@ -13,6 +13,7 @@ import { RealtimeStatus } from '@/components/realtime/RealtimeStatus'
 import { useDashboard } from '@/hooks/use-dashboard'
 import { useCommandPalette } from '@/hooks/useCommandPalette'
 import { useRealtimeDashboard } from '@/hooks/useEnhancedWebSocket'
+import { logger } from '@/lib/logger'
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt'
 import { Loader2, Wifi } from 'lucide-react'
 
@@ -136,7 +137,12 @@ export default function Dashboard() {
               agentAvatar={selectedAgent.avatar}
               onNewSession={() => {
                 // Handle new session creation
-                console.log('Starting new session with', selectedAgent.name)
+                logger.info('Starting new session', {
+                  agentId: selectedAgent.id,
+                  agentName: selectedAgent.name,
+                  component: 'ChatPanel',
+                  action: 'new_session'
+                })
               }}
             />
           )}

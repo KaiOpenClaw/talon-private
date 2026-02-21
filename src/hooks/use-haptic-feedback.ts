@@ -7,6 +7,7 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
+import { logger } from '@/lib/logger';
 
 type HapticType = 'light' | 'medium' | 'heavy' | 'selection' | 'impact' | 'notification';
 
@@ -136,7 +137,13 @@ export function useHapticFeedback(options: HapticOptions = {}): HapticFeedbackHo
 
     } catch (error) {
       // Silently fail - haptic feedback is enhancement, not critical
-      console.debug('Haptic feedback failed:', error);
+      logger.debug('Haptic feedback failed', { 
+        error: error instanceof Error ? error.message : String(error),
+        type,
+        intensity,
+        support,
+        fallbackEnabled: fallbackToVibration
+      });
     }
   }, [enabled, fallbackToVibration, detectSupport]);
 
