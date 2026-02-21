@@ -6,6 +6,9 @@ import { MobilePullRefresh } from '@/components/pull-to-refresh'
 import { MobileBottomNav } from '@/components/mobile/mobile-bottom-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { DashboardStats } from '@/components/dashboard/dashboard-stats'
+import { RealtimeDashboardStats } from '@/components/dashboard/realtime-dashboard-stats'
+import { RealtimeSystemHealth } from '@/components/realtime/realtime-system-health'
+import { RealtimeMobileNotifications } from '@/components/realtime/realtime-mobile-notifications'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { AgentList } from '@/components/dashboard/agent-list'
 import { RealtimeDashboard } from '@/components/realtime/RealtimeDashboard'
@@ -105,7 +108,7 @@ export default function Dashboard() {
           onRefresh={handleRefresh}
         />
         
-        <DashboardStats
+        <RealtimeDashboardStats
           agentCount={agents?.length || 0}
           activeSessionCount={activeSessionCount}
           totalSessions={sessions?.length || 0}
@@ -272,6 +275,23 @@ export default function Dashboard() {
         currentAgent={selectedAgent?.id}
         onCommandPalette={openCommandPalette}
       />
+      </div>
+      
+      {/* Real-time Mobile Notifications */}
+      <RealtimeMobileNotifications 
+        position="top-right"
+        enableSound={true}
+        enableHaptic={true}
+        enablePush={true}
+        maxNotifications={5}
+      />
+      
+      {/* Real-time System Health Monitor (Desktop only) */}
+      <div className="hidden lg:block">
+        <RealtimeSystemHealth 
+          variant="minimal" 
+          className="fixed bottom-4 left-4 z-40"
+        />
       </div>
     </RealtimeDashboard>
   )

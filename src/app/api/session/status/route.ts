@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { logger, logApiError } from '@/lib/logger'
+import { broadcastSessionUpdate, broadcastDashboardRefresh } from '@/lib/realtime-events'
 
 interface SessionTokenData {
   inputTokens?: number
@@ -61,6 +62,23 @@ export async function GET(request: NextRequest) {
       },
       cost: undefined, // Not available in current status
       elapsed: result.uptime || '0s'
+    }
+    
+    // Broadcast real-time update
+    try {
+      await broadcastSessionUpdate({
+        status,
+        sessionKey,
+        timestamp: new Date().toISOString()
+      })
+      
+      await broadcastDashboardRefresh()
+    } catch (broadcastError) {
+      logger.warn('Failed to broadcast session status update', {
+        api: 'session-status',
+        error: broadcastError instanceof Error ? broadcastError.message : String(broadcastError),
+        sessionKey
+      })
     }
     
     return Response.json(status)
