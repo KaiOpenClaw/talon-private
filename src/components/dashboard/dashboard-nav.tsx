@@ -1,9 +1,9 @@
-import { MessageSquare, Users, Activity, Plus, Settings, Search, BarChart3, Shield, DollarSign, Package, TrendingUp } from 'lucide-react'
+import { MessageSquare, Users, Activity, Plus, Settings, Search, BarChart3, Shield, DollarSign, Package, TrendingUp, Server } from 'lucide-react'
 import Link from 'next/link'
 
 interface DashboardNavProps {
-  view: 'chat' | 'agents' | 'sessions'
-  onViewChange: (view: 'chat' | 'agents' | 'sessions') => void
+  view: 'chat' | 'agents' | 'sessions' | 'gateways'
+  onViewChange: (view: 'chat' | 'agents' | 'sessions' | 'gateways') => void
 }
 
 export function DashboardNav({ view, onViewChange }: DashboardNavProps) {
@@ -11,6 +11,7 @@ export function DashboardNav({ view, onViewChange }: DashboardNavProps) {
     { id: 'chat' as const, icon: MessageSquare, label: 'Chat' },
     { id: 'agents' as const, icon: Users, label: 'Agents' },
     { id: 'sessions' as const, icon: Activity, label: 'Sessions' },
+    { id: 'gateways' as const, icon: Server, label: 'Gateways' },
   ]
 
   const quickActions = [

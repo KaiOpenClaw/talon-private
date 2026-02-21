@@ -9,6 +9,7 @@ import { DashboardStats } from '@/components/dashboard/dashboard-stats'
 import { RealtimeDashboardStats } from '@/components/dashboard/realtime-dashboard-stats'
 import { RealtimeSystemHealth } from '@/components/realtime/realtime-system-health'
 import { RealtimeMobileNotifications } from '@/components/realtime/realtime-mobile-notifications'
+import { GatewayManager } from '@/components/multi-gateway/gateway-manager'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { AgentList } from '@/components/dashboard/agent-list'
 import { RealtimeDashboard } from '@/components/realtime/RealtimeDashboard'
@@ -262,6 +263,15 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {view === 'gateways' && (
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="max-w-6xl mx-auto">
+                <h1 className="text-2xl font-bold text-ink-base mb-6">Gateway Management</h1>
+                <GatewayManager variant="detailed" />
               </div>
             </div>
           )}

@@ -5,7 +5,7 @@ import { Agent, Session, Blocker } from '@/lib/hooks'
 
 export function useDashboard() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-  const [view, setView] = useState<'chat' | 'agents' | 'sessions'>('chat')
+  const [view, setView] = useState<'chat' | 'agents' | 'sessions' | 'gateways'>('chat')
   const [focusedAgentIndex, setFocusedAgentIndex] = useState(0)
   const [blockers, setBlockers] = useState<Blocker[]>([])
   const [loading, setLoading] = useState(true)
